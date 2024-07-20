@@ -1,5 +1,4 @@
-from turtle import width
-from typing import Any, List, Optional, Tuple
+from typing import Any, List, Optional
 from uuid import uuid4
 
 from pydantic import BaseModel, Field
