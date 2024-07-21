@@ -3,10 +3,10 @@ import traceback
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 
-from database.services.file_service import FileService
+from database.services.canvas_service import CanvasService
 from database.services.user_service import UserService
 from dependencies.authorization import clerk_validate_user
-from dependencies.database import get_file_service, get_user_service
+from dependencies.database import get_canvas_service, get_user_service
 
 router = APIRouter(prefix="/api/v1")
 
@@ -15,11 +15,11 @@ router = APIRouter(prefix="/api/v1")
 async def get_file(
     file_id: str,
     user_service: UserService = Depends(get_user_service),
-    file_service: FileService = Depends(get_file_service),
+    canvas_service: CanvasService = Depends(get_canvas_service),
     clerk_user_id=Depends(clerk_validate_user),
 ):
     try:
-        file_object = file_service.get(file_id)
+        file_object = canvas_service.get(file_id)
 
         if file_object is None:
             raise HTTPException(404)

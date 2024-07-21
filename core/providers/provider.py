@@ -27,16 +27,16 @@ class Provider(ABC):
     def clear_signal(self) -> None:
         self._signal = None
 
+    def set_context(self, context: Dict[str, Any]) -> None:
+        self._context = context
+
     def _set_signal(
         self,
         status: Literal["info", "warning", "error"],
-        text: Optional[str] = None,
+        text: str = "",
         varnames: Optional[List[str]] = None,
         response: Optional[ChatMessage] = None,
     ) -> None:
         self._signal = ExecSignal(status=status, text=text)
         self._signal.varnames = varnames
         self._signal.response = response
-
-    def _set_context(self, context: Dict[str, Any]) -> None:
-        self._context = context

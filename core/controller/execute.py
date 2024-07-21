@@ -15,6 +15,7 @@ def execute(
 ) -> ExecMessage:
     signal = DEFAULT_SIGNAL
     executed_commands = []
+    provider.set_context(context)
 
     for command in commands:
         executed_commands.append(command)
@@ -25,15 +26,15 @@ def execute(
             break
 
         signal = provider.get_signal()
-        context.update(provider.get_context())
+        provider.clear_signal()
 
         if signal.status in {"warning", "error"}:
             break
 
     return ExecMessage(
         status=signal.status,
-        text=signal.text,
         commands=executed_commands,
+        text=signal.text,
         varnames=signal.varnames,
         response=signal.response,
     )

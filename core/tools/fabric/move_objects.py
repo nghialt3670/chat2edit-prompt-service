@@ -4,8 +4,8 @@ from typing import List, Tuple
 from core.schemas.fabric.fabric_canvas import FabricCanvas
 from core.schemas.fabric.fabric_image import FabricImage
 from core.schemas.fabric.fabric_object import FabricObject
-from core.tools.fabric.inpaint_objects import inpaint_objects
 from core.tools.fabric.helpers import get_object_idxs
+from core.tools.fabric.inpaint_objects import inpaint_objects
 
 
 async def move_objects(

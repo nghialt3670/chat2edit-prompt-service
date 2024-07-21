@@ -3,7 +3,6 @@ from io import BytesIO
 
 import aiohttp
 import PIL.Image
-from fastapi import UploadFile
 
 
 def image_to_base64(image: PIL.Image.Image) -> str:

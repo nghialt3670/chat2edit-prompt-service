@@ -8,5 +8,5 @@ from database.models.conversation.prompt_cycle import PromptCycle
 
 class ChatCycle(BaseModel):
     request: ChatMessage
-    prompt_cycles: List[PromptCycle] = Field(default=list)
+    prompt_cycles: List[PromptCycle] = Field(default_factory=list)
     response: Optional[ChatMessage] = Field(default=None)

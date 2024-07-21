@@ -1,5 +1,6 @@
 from copy import deepcopy
 from typing import List, Literal, Optional
+
 from core.schemas.fabric.fabric_canvas import FabricCanvas
 from core.schemas.fabric.fabric_image import FabricImage
 from core.tools.fabric.helpers import get_object_idxs

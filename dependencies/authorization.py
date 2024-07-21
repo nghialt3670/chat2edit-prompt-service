@@ -17,8 +17,8 @@ def clerk_validate_user(
         user_id = payload.get("sub")
         return user_id
 
-    except PyJWTError as e:
+    except PyJWTError:
         raise HTTPException(401)
 
-    except Exception as e:
+    except Exception:
         raise HTTPException(500)

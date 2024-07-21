@@ -9,20 +9,16 @@ from database.models import ChatCycle, ChatMessage
 from database.models.conversation.prompt_cycle import PromptCycle
 
 
-def fullfill(
+async def fullfill(
     cycles: List[ChatCycle],
-    mappings: Dict[str, Any],
+    context: Dict[str, Any],
     request: ChatMessage,
     llm: LLM,
     provider: Provider,
     max_prompts: int = 4,
     helper_prompt: Optional[str] = None,
 ) -> ChatCycle:
-    curr_cycle = ChatCycle(
-        request=request,
-        prompt_cycles=[],
-        res_message=ResMessage(status="error", text="", file_ids=[]),
-    )
+    curr_cycle = ChatCycle(request=request)
 
     functions = provider.get_functions()
     exemplars = provider.get_exemplars()
@@ -39,8 +35,11 @@ def fullfill(
 
         while (not thinking or not commands) and prompt_count < max_prompts:
             try:
-                prompt_cycle.answer = llm(messages)
+                prompt_cycle.answer = await llm(messages)
                 prompt_count += 1
+            except Exception:
+                break
+            try:
                 thinking, commands = extract_thinking_commands(prompt_cycle.answer)
             except Exception:
                 if helper_prompt:
@@ -52,12 +51,13 @@ def fullfill(
             curr_cycle.prompt_cycles.append(prompt_cycle)
             break
 
-        exec_message = execute(commands, mappings, provider)
+        exec_message = execute(commands, context, provider)
+
         prompt_cycle.exec_message = exec_message
         curr_cycle.prompt_cycles.append(prompt_cycle)
         curr_cycle.response = exec_message.response
 
         if curr_cycle.response:
-            return curr_cycle
+            break
 
     return curr_cycle

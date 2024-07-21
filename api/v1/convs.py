@@ -39,7 +39,7 @@ async def get_conversation(
         messages = [
             MessageResponse(text=m.text, file_ids=m.file_ids, timestamp=m.timestamp)
             for c in conv.chat_cycles
-            for m in (c.req_message, c.res_message)
+            for m in (c.request, c.response)
         ]
         return ConvResponse(messages=messages)
 
