@@ -2,9 +2,8 @@ import os
 from typing import Iterable, Optional
 
 import google.generativeai as genai
-from google.generativeai import GenerationConfig
-
 from core.llms.llm import LLM
+from google.generativeai import GenerationConfig
 
 SAFETY_SETTINGS = [
     {

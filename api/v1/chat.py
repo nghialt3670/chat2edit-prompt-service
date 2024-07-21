@@ -3,9 +3,6 @@ import traceback
 from typing import List, Literal, Optional
 
 from bson import ObjectId
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
-from pydantic import BaseModel, Field
-
 from core.controller.fullfill import fullfill
 from core.llms.llm import LLM
 from core.providers.fabric_provider import FabricProvider
@@ -20,6 +17,8 @@ from dependencies.authorization import clerk_validate_user
 from dependencies.database import (get_canvas_service, get_context_service,
                                    get_conv_service, get_user_service)
 from dependencies.llms import get_llm
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from pydantic import BaseModel, Field
 
 router = APIRouter(prefix="/api/v1")
 provider = FabricProvider(
@@ -71,8 +70,8 @@ async def chat(
         for file in files:
             if file.filename.endswith(".canvas"):
                 file_bytes = await file.read()
-                canvas = FabricCanvas.parse_raw(file_bytes)
-                req_file_ids.append(str(canvas_service.save(canvas)))
+                canvas = FabricCanvas.model_validate_json(file_bytes)
+                req_file_ids.append(str(canvas_service.save(canvas, user.id)))
                 alias = TYPE_TO_ALIAS[FabricCanvas]
                 idx = conv.alias_to_count.get(alias, 0)
                 conv.alias_to_count[alias] = idx + 1
@@ -83,7 +82,7 @@ async def chat(
             else:
                 raise NotImplementedError()
 
-        cycles = conv.chat_cycles[:-MAX_CYCLES]
+        cycles = [cycle for cycle in conv.chat_cycles if cycle.response][:-MAX_CYCLES]
         context.update(**{f.__name__: f for f in provider.get_functions()})
         request = ChatMessage(
             text=text, file_ids=req_file_ids, varnames=varnames, timestamp=timestamp
@@ -91,7 +90,10 @@ async def chat(
 
         curr_cycle = await fullfill(cycles, context, request, llm, provider)
 
-        conv.title = curr_cycle.response.text
+        if curr_cycle.response:
+            conv.title = curr_cycle.response.text
+        else:
+            conv.title = "ERROR"
         conv.chat_cycles.append(curr_cycle)
         conv_service.save(conv)
 
@@ -102,7 +104,7 @@ async def chat(
         for key in keys_to_remove:
             del context[key]
 
-        context_service.update(context_id, context)
+        context_service.update(conv.context_id, context)
 
         response = curr_cycle.response
         if not response:
@@ -112,7 +114,7 @@ async def chat(
         for varname in response.varnames:
             obj = context[varname]
             if isinstance(obj, FabricCanvas):
-                res_file_ids.append(await canvas_service.save(obj))
+                res_file_ids.append(await canvas_service.save(obj, user.id))
             else:
                 raise NotImplementedError()
 

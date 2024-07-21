@@ -3,7 +3,6 @@ from typing import List
 
 import aiohttp
 import PIL.Image
-
 from core.schemas.fabric import FabricImage
 from core.schemas.fabric.fabric_canvas import FabricCanvas
 from core.utils.convert import base64_to_image, image_to_base64, src_to_image

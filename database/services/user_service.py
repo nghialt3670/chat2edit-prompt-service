@@ -1,9 +1,8 @@
 from typing import Optional
 
-from pymongo.collection import Collection
-
 from database.models import User
 from database.models.user.settings import Settings
+from pymongo.collection import Collection
 
 
 class UserService:

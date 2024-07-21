@@ -2,10 +2,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+from api.v1 import chat, convs, files, users
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
-from api.v1 import chat, convs, files, users
 
 app = FastAPI()
 

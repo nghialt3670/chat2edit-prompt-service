@@ -1,12 +1,11 @@
 import traceback
 
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import StreamingResponse
-
 from database.services.canvas_service import CanvasService
 from database.services.user_service import UserService
 from dependencies.authorization import clerk_validate_user
 from dependencies.database import get_canvas_service, get_user_service
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 
 router = APIRouter(prefix="/api/v1")
 
@@ -26,6 +25,7 @@ async def get_file(
 
         user = user_service.find_by_clerk_user_id(clerk_user_id)
         if file_object.user_id != user.id:
+            print(file_object.user_id, user.id)
             raise HTTPException(401)
 
         headers = {

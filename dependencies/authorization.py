@@ -1,9 +1,8 @@
 import jwt
+from dependencies.keys import get_clerk_public_key
 from fastapi import Depends, HTTPException, Security
 from fastapi.security import OAuth2PasswordBearer
 from jwt import PyJWTError
-
-from dependencies.keys import get_clerk_public_key
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 

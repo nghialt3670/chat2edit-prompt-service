@@ -1,12 +1,11 @@
 import os
 
-from gridfs import GridFS
-from pymongo import MongoClient
-from redis import Redis
-
 from database.services import ConvService, UserService
 from database.services.canvas_service import CanvasService
 from database.services.context_service import ContextService
+from gridfs import GridFS
+from pymongo import MongoClient
+from redis import Redis
 
 client = MongoClient(os.getenv("MONGO_URL"))
 database = client.get_database("chat2edit")

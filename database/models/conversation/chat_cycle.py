@@ -1,9 +1,8 @@
 from typing import List, Optional
 
-from pydantic import BaseModel, Field
-
 from database.models.conversation.chat_message import ChatMessage
 from database.models.conversation.prompt_cycle import PromptCycle
+from pydantic import BaseModel, Field
 
 
 class ChatCycle(BaseModel):

@@ -1,12 +1,11 @@
 import traceback
 from typing import List, Literal
 
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
-
 from database.services import ConvService, UserService
 from dependencies.authorization import clerk_validate_user
 from dependencies.database import get_conv_service, get_user_service
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 
 router = APIRouter(prefix="/api/v1")
 

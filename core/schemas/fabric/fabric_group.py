@@ -1,10 +1,9 @@
 from typing import List, Union
 
-from pydantic import BaseModel
-
 from core.schemas.fabric.fabric_image import FabricImage
 from core.schemas.fabric.fabric_object import FabricObject
 from core.schemas.fabric.fabric_textbox import FabricTextbox
+from pydantic import BaseModel
 
 
 class LayoutManagerModel(BaseModel):

@@ -2,7 +2,6 @@ import os
 from typing import List
 
 import aiohttp
-
 from core.schemas.fabric.fabric_canvas import FabricCanvas
 from core.schemas.fabric.fabric_image import FabricImage
 from core.utils.convert import image_to_base64, image_to_mask

@@ -1,8 +1,7 @@
 from base64 import b64encode
 
-from fastapi import UploadFile
-
 from core.schemas.fabric import FabricCanvas, FabricImage
+from fastapi import UploadFile
 
 
 async def init_canvas_from_file(file: UploadFile) -> FabricCanvas:

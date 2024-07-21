@@ -51,7 +51,7 @@ async def fullfill(
             curr_cycle.prompt_cycles.append(prompt_cycle)
             break
 
-        exec_message = execute(commands, context, provider)
+        exec_message = await execute(commands, context, provider)
 
         prompt_cycle.exec_message = exec_message
         curr_cycle.prompt_cycles.append(prompt_cycle)

@@ -4,10 +4,12 @@ from typing import Any, Callable, Dict, List, Literal, Optional
 from core.providers.exec_signal import ExecSignal
 from database.models.conversation.chat_message import ChatMessage
 
+DEFAULT_SIGNAL = ExecSignal(status="info", text="Commands executed successfully.")
+
 
 class Provider(ABC):
     def __init__(self) -> None:
-        self._signal = None
+        self._signal = DEFAULT_SIGNAL
         self._context = {}
 
     @abstractmethod
@@ -18,7 +20,7 @@ class Provider(ABC):
     def get_exemplars(self) -> str:
         pass
 
-    def get_signal(self) -> Optional[ExecSignal]:
+    def get_signal(self) -> ExecSignal:
         return self._signal
 
     def get_context(self) -> Dict[str, Any]:

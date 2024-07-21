@@ -1,8 +1,7 @@
 from bson import ObjectId
-from pydantic import BaseModel, Field
-
 from database.models.document import Document
 from database.models.user.settings import Settings
+from pydantic import BaseModel, Field
 
 
 class User(Document):

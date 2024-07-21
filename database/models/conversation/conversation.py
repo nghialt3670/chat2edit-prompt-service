@@ -1,10 +1,9 @@
 from typing import Dict, List
 
 from bson import ObjectId
-from pydantic import Field
-
 from database.models.conversation.chat_cycle import ChatCycle
 from database.models.document import Document
+from pydantic import Field
 
 
 class Conversation(Document):

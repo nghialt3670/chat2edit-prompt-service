@@ -71,11 +71,13 @@ class FabricProvider(Provider):
             response = ChatMessage(text=text)
         self._set_signal(status="info", response=response)
 
-    def detect(self, image: Image, prompt: str) -> List[Object]:
-        return asyncio.run(detect_objects(image, prompt))
+    async def detect(self, image: Image, prompt: str) -> List[Object]:
+        return await detect_objects(image, prompt)
 
-    def remove(self, image: Image, targets: List[Union[Image, Object, Text]]) -> Image:
-        return asyncio.run(remove_objects(image, targets))
+    async def remove(
+        self, image: Image, targets: List[Union[Image, Object, Text]]
+    ) -> Image:
+        return await remove_objects(image, targets)
 
     def filter(
         self,
@@ -86,31 +88,31 @@ class FabricProvider(Provider):
     ) -> Image:
         return apply_filter(image, filter_name, filter_value, targets)
 
-    def rotate(
+    async def rotate(
         self,
         image: Image,
         angle: int,
         targets: Optional[List[Union[Image, Object, Text]]] = None,
     ) -> Image:
         if targets:
-            return asyncio.run(rotate_objects(image, targets, angle))
-        return asyncio.run(rotate_objects(image, image.backgroundImage, angle))
+            return await rotate_objects(image, targets, angle)
+        return await rotate_objects(image, image.backgroundImage, angle)
 
-    def flip(
+    async def flip(
         self,
         image: Image,
         axis: Literal["x", "y"],
         targets: Optional[List[Union[Image, Object, Text]]] = None,
     ) -> Image:
         if targets:
-            return asyncio.run(flip_objects(image, targets, axis))
-        return asyncio.run(flip_objects(image, image.backgroundImage, axis))
+            return await flip_objects(image, targets, axis)
+        return await flip_objects(image, image.backgroundImage, axis)
 
-    def scale(
+    async def scale(
         self,
         image: Image,
         factor: float,
         targets: Optional[List[Union[Image, Object, Text]]],
         axis: Optional[Literal["x", "y"]] = None,
     ) -> Image:
-        return asyncio.run(scale_objects(image, targets, factor, axis))
+        return await scale_objects(image, targets, factor, axis)

@@ -2,13 +2,12 @@ import json
 from typing import Any, Dict, Optional
 
 from bson import ObjectId
-from gridfs import GridFS
-from pydantic import BaseModel
-from redis import Redis
-
 from core.schemas.fabric.fabric_canvas import FabricCanvas
 from core.schemas.fabric.fabric_image import FabricImage
 from core.schemas.fabric.fabric_textbox import FabricTextbox
+from gridfs import GridFS
+from pydantic import BaseModel
+from redis import Redis
 
 
 class CustomEncoder(json.JSONEncoder):

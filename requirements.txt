@@ -6,3 +6,4 @@ pillow==10.4.0
 PyJWT==2.8.0
 pymongo==4.8.0
 redis==5.0.7
+cryptography==42.0.8

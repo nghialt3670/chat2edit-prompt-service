@@ -1,13 +1,12 @@
 import traceback
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
-
 from database.services import ConvService
 from database.services.user_service import UserService
 from dependencies.authorization import clerk_validate_user
 from dependencies.database import get_conv_service, get_user_service
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 
 router = APIRouter(prefix="/api/v1")
 
@@ -36,10 +35,12 @@ async def get_conversation(
         if not conv:
             raise HTTPException(404)
 
+        
         messages = [
             MessageResponse(text=m.text, file_ids=m.file_ids, timestamp=m.timestamp)
             for c in conv.chat_cycles
             for m in (c.request, c.response)
+            if c.response
         ]
         return ConvResponse(messages=messages)
 
