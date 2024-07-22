@@ -1,4 +1,5 @@
 from typing import Any
+
 from bson import ObjectId
 from core.schemas.fabric.fabric_canvas import FabricCanvas
 from fastapi import UploadFile
@@ -19,10 +20,11 @@ class CanvasService:
     def save(self, canvas: FabricCanvas, user_id: ObjectId) -> ObjectId:
         return self._gridfs.put(
             canvas.model_dump_json().encode(),
-            filename=canvas.backgroundImage.filename,
+            filename=".".join(canvas.backgroundImage.filename.split(".")[:-1])
+            + ".canvas",
             user_id=ObjectId(user_id),
         )
-        
+
     def get(self, id: ObjectId) -> Any:
         return self._gridfs.get(ObjectId(id))
 

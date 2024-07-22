@@ -12,18 +12,15 @@ from core.tools.fabric.inpaint_objects import inpaint_objects
 async def remove_objects(
     canvas: FabricCanvas, objects: List[FabricObject]
 ) -> FabricCanvas:
-    idxs_to_remove = get_object_idxs(canvas, objects)
+    object_idxs = get_object_idxs(canvas, objects)
     canvas = deepcopy(canvas)
 
-    not_inpainted_objects = [
-        obj
-        for obj, idx in enumerate(canvas.objects)
-        if idx in set(idxs_to_remove)
-        and isinstance(obj, FabricImage)
-        and not obj.inpainted
-    ]
-    canvas.objects = [
-        obj for idx, obj in enumerate(canvas.objects) if idx not in set(idxs_to_remove)
-    ]
+    not_inpainted_objects = []
+    for i in object_idxs:
+        obj = canvas.objects[i]
+        canvas.objects.pop(i)
+        if isinstance(obj, FabricImage) and not obj.inpainted:
+            not_inpainted_objects.append(obj)
+
     await inpaint_objects(canvas, not_inpainted_objects)
     return canvas

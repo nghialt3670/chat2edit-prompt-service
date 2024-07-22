@@ -22,7 +22,17 @@ from pydantic import BaseModel, Field
 
 router = APIRouter(prefix="/api/v1")
 provider = FabricProvider(
-    ["response_user", "detect", "remove", "filter", "rotate", "flip", "scale"]
+    [
+        "response_user",
+        "detect",
+        "remove",
+        "filter",
+        "rotate",
+        "flip",
+        "scale",
+        "move",
+        "shift",
+    ]
 )
 
 
@@ -32,7 +42,7 @@ class ChatResponse(BaseModel):
     file_ids: List[str] = Field(default_factory=list)
 
 
-MAX_CYCLES = 4
+MAX_CYCLES = 6
 NAME_TO_CLASS = {"FabricCanvas": FabricCanvas}
 TYPE_TO_ALIAS = {FabricCanvas: "image"}
 CONTEXT_ALLOWED_TYPES = (str, int, float, bool, list, dict, FabricCanvas, FabricObject)
@@ -62,7 +72,9 @@ async def chat(
             context = context_service.load(conv.context_id)
         else:
             context_id = context_service.save({})
-            conv = Conversation(user_id=user.id, context_id=context_id)
+            conv = Conversation(
+                _id=ObjectId(conv_id), user_id=user.id, context_id=context_id
+            )
 
         objects = []
         varnames = []
@@ -82,20 +94,14 @@ async def chat(
             else:
                 raise NotImplementedError()
 
-        cycles = [cycle for cycle in conv.chat_cycles if cycle.response][:-MAX_CYCLES]
+        cycles = [cycle for cycle in conv.chat_cycles if cycle.response][-MAX_CYCLES:]
         context.update(**{f.__name__: f for f in provider.get_functions()})
         request = ChatMessage(
             text=text, file_ids=req_file_ids, varnames=varnames, timestamp=timestamp
         )
 
         curr_cycle = await fullfill(cycles, context, request, llm, provider)
-
-        if curr_cycle.response:
-            conv.title = curr_cycle.response.text
-        else:
-            conv.title = "ERROR"
         conv.chat_cycles.append(curr_cycle)
-        conv_service.save(conv)
 
         # Filter out unsupport types
         keys_to_remove = [
@@ -107,19 +113,27 @@ async def chat(
         context_service.update(conv.context_id, context)
 
         response = curr_cycle.response
+
         if not response:
+            conv.title = "ERROR"
+            conv_service.save(conv)
             return ChatResponse(status="error")
 
-        res_file_ids = []
         for varname in response.varnames:
             obj = context[varname]
             if isinstance(obj, FabricCanvas):
-                res_file_ids.append(await canvas_service.save(obj, user.id))
+                response.file_ids.append(str(canvas_service.save(obj, user.id)))
             else:
                 raise NotImplementedError()
 
-        return ChatResponse(status="success", text=response.text, file_ids=res_file_ids)
+        conv.title = response.text
+        conv_service.save(conv)
+        return ChatResponse(
+            status="success",
+            text=response.text,
+            file_ids=[str(id) for id in curr_cycle.response.file_ids],
+        )
 
     except Exception:
         print(traceback.format_exc())
-        raise HTTPException(status_code=500)
+        raise HTTPException(500)

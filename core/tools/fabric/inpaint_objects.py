@@ -19,8 +19,6 @@ async def inpaint_objects(canvas: FabricCanvas, objects: List[FabricImage]) -> N
 
     request_masks = []
     for obj in objects:
-        if obj not in canvas.objects:
-            raise RuntimeError("Object not within image")
         obj_image = await obj.to_image()
         obj_mask = image_to_mask(obj_image)
         request_mask = {

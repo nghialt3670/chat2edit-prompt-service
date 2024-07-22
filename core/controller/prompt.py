@@ -38,11 +38,12 @@ def _format_chat_cycles(cycle: ChatCycle) -> str:
     else:
         result += f"observation: user_request(text='{request.text}')\n"
     for prompt_cycle in cycle.prompt_cycles:
-        thinking, commands = extract_thinking_commands(prompt_cycle.answer)
-        result += f"thinking: {thinking}\n"
-        result += "commands:\n{}\n".format("\n".join(commands))
-
+        thinking, _ = extract_thinking_commands(prompt_cycle.answer)
         exec_message = prompt_cycle.exec_message
+        
+        result += f"thinking: {thinking}\n"
+        result += "commands:\n{}\n".format("\n".join(exec_message.commands))
+
         if exec_message.response:
             break
 

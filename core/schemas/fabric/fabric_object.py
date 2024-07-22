@@ -15,6 +15,7 @@ class FabricObject(BaseModel):
     width: Optional[int] = None
     height: Optional[int] = None
     fill: str = "rgb(0,0,0)"
+    selectable: Optional[bool] = True
     stroke: Optional[str] = None
     strokeWidth: int = 1
     strokeDashArray: Optional[List[int]] = None

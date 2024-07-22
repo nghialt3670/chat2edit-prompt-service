@@ -1,3 +1,4 @@
+from core.tools.fabric.apply_filter import apply_filter
 from core.tools.fabric.detect_objects import detect_objects
 from core.tools.fabric.flip_objects import flip_objects
 from core.tools.fabric.insert_object import insert_object
@@ -10,6 +11,7 @@ from core.tools.fabric.scale_objects import scale_objects
 from core.tools.fabric.shift_objects import shift_objects
 
 __all__ = [
+    "apply_filter",
     "detect_objects",
     "flip_objects",
     "insert_object",
