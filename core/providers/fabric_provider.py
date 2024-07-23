@@ -6,7 +6,8 @@ from core.providers.provider import Provider
 from core.schemas.fabric import (FabricCanvas, FabricImage, FabricRect,
                                  FabricTextbox)
 from core.tools.fabric import (apply_filter, detect_objects, flip_objects,
-                               move_objects, remove_objects, rotate_objects,
+                               move_objects, remove_objects,
+                               replace_objects_with_prompt, rotate_objects,
                                scale_objects, shift_objects)
 from database.models import ChatMessage
 
@@ -97,6 +98,11 @@ class FabricProvider(Provider):
         self, image: Image, targets: List[Union[Image, Object, Text]]
     ) -> Image:
         return await remove_objects(image, targets)
+
+    async def replace(self, image: Image, targets: List[Object], prompt: str) -> Image:
+        image = await remove_objects(image, targets)
+        await replace_objects_with_prompt(image, targets, prompt)
+        return image
 
     def filter(
         self,
