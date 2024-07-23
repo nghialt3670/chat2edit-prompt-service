@@ -12,7 +12,7 @@ class FabricImage(FabricObject):
     type: str = "Image"
     cropX: int = 0
     cropY: int = 0
-    src: str
+    src: str = Field(repr=False)
     crossOrigin: Optional[str] = None
     filters: List = []
 

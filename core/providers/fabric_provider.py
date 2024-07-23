@@ -35,7 +35,7 @@ observation: sys_info(text="Detected 1 `house` in the image")
 thinking: We detected the house, now we can do the next step.
 commands:
 image1 = filter(image0, filter_name="brightness", filter_value=1.15, targets=houses)
-response_user(text="Đây là bức ảnh sau khi đã tăng độ sáng ngôi nhà lên 15%." variables=[image1])
+response_user(text="Đây là bức ảnh sau khi đã tăng độ sáng ngôi nhà lên 15%.", variables=[image1])
 """
 
 FILTER_NAME_MAPPINGS = {
@@ -47,7 +47,7 @@ FILTER_NAME_MAPPINGS = {
     "bright": "Brightness",
     "blur": "Blur",
     "blurness": "Blur",
-    "contrast" :"Contrast",
+    "contrast": "Contrast",
     "noise": "Noise",
     "pixelate": "Pixelate",
     "pixel": "Pixelate",
@@ -107,9 +107,14 @@ class FabricProvider(Provider):
     ) -> Image:
         filter_name = filter_name.lower()
         if filter_name not in FILTER_NAME_MAPPINGS:
-            self._set_signal("error", f"Available values for `filter_name` are: {FILTER_NAME_MAPPINGS.values()}")
+            self._set_signal(
+                "error",
+                f"Available values for `filter_name` are: {FILTER_NAME_MAPPINGS.values()}",
+            )
             return image
-        return apply_filter(image, FILTER_NAME_MAPPINGS[filter_name], filter_value, targets)
+        return apply_filter(
+            image, FILTER_NAME_MAPPINGS[filter_name], filter_value, targets
+        )
 
     async def rotate(
         self,
@@ -175,14 +180,17 @@ class FabricProvider(Provider):
                 width=obj.width,
                 height=obj.height,
                 stroke="red",
+                strokeWidth=3,
                 selectable=False,
+                fill="transparent",
             )
             obj_idx = FabricTextbox(
                 text=f"{idx}",
                 left=obj.left,
                 top=obj.top,
-                fontSize=canvas.backgroundImage.height // 10,
+                fontSize=canvas.backgroundImage.height // 8,
                 selectable=False,
+                fill="red",
             )
             canvas.objects.append(obj_box)
             canvas.objects.append(obj_idx)

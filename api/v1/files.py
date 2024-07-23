@@ -25,7 +25,6 @@ async def get_file(
 
         user = user_service.find_by_clerk_user_id(clerk_user_id)
         if file_object.user_id != user.id:
-            print(file_object.user_id, user.id)
             raise HTTPException(401)
 
         headers = {

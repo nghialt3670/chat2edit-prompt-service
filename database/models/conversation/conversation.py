@@ -6,7 +6,7 @@ from database.models.document import Document
 from pydantic import Field
 
 
-class Conversation(Document):
+class Conversationersation(Document):
     user_id: ObjectId
     context_id: ObjectId
     title: str = Field(default="")

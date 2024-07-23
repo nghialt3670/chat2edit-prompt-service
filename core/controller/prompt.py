@@ -40,7 +40,7 @@ def _format_chat_cycles(cycle: ChatCycle) -> str:
     for prompt_cycle in cycle.prompt_cycles:
         thinking, _ = extract_thinking_commands(prompt_cycle.answer)
         exec_message = prompt_cycle.exec_message
-        
+
         result += f"thinking: {thinking}\n"
         result += "commands:\n{}\n".format("\n".join(exec_message.commands))
 

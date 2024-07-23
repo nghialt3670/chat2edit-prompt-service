@@ -2,9 +2,9 @@ import json
 from typing import Any, Dict, Optional
 
 from bson import ObjectId
-from core.schemas.fabric.fabric_canvas import FabricCanvas
-from core.schemas.fabric.fabric_image import FabricImage
-from core.schemas.fabric.fabric_textbox import FabricTextbox
+from core.schemas.fabric import (FabricCanvas, FabricGroup, FabricImage,
+                                 FabricObject, FabricRect, FabricTextbox,
+                                 LayoutManagerModel)
 from gridfs import GridFS
 from pydantic import BaseModel
 from redis import Redis
@@ -32,6 +32,14 @@ class CustomDecoder(json.JSONDecoder):
                 return FabricImage(**obj)
             if obj_type == "FabricTextbox":
                 return FabricTextbox(**obj)
+            if obj_type == "FabricGroup":
+                return FabricGroup(**obj)
+            if obj_type == "FabricRect":
+                return FabricRect(**obj)
+            if obj_type == "LayoutManagerModel":
+                return LayoutManagerModel(**obj)
+            if obj_type == "FabricObject":
+                return FabricObject(**obj)
             raise RuntimeError(f"Unsupport obj type: {obj_type}")
         return obj
 
@@ -49,12 +57,15 @@ class ContextService:
             self._gridfs.delete(ObjectId(id))
 
         json_str = json.dumps(context, cls=CustomEncoder)
+        with open("temp.json", "w") as f:
+            f.write(json_str)
         json_bytes = json_str.encode()
         self._gridfs.put(json_bytes, _id=ObjectId(id))
         self._redis.set(str(id), json_bytes, self._cache_exp_secs)
 
     def save(self, context: Dict[str, Any]) -> ObjectId:
         json_str = json.dumps(context, cls=CustomEncoder)
+        print(json_str)
         json_bytes = json_str.encode()
         context_id = self._gridfs.put(json_bytes)
         self._redis.set(str(context_id), json_bytes, self._cache_exp_secs)
@@ -62,9 +73,9 @@ class ContextService:
 
     def load(self, id: ObjectId) -> Optional[Dict[str, Any]]:
         if json_bytes := self._redis.get(str(id)):
-            return json.loads(json_bytes)
+            return json.loads(json_bytes, cls=CustomDecoder)
 
         if file_obj := self._gridfs.get(ObjectId(id)):
-            return json.loads(file_obj.read().decode(), cls=CustomDecoder)
+            return json.loads(file_obj.read(), cls=CustomDecoder)
 
         return None

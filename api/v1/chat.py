@@ -8,7 +8,7 @@ from core.llms.llm import LLM
 from core.providers.fabric_provider import FabricProvider
 from core.schemas.fabric.fabric_canvas import FabricCanvas
 from core.schemas.fabric.fabric_object import FabricObject
-from database.models import ChatMessage, Conversation
+from database.models import ChatMessage, Conversationersation
 from database.services import ConvService
 from database.services.canvas_service import CanvasService
 from database.services.context_service import ContextService
@@ -72,9 +72,11 @@ async def chat(
             context = context_service.load(conv.context_id)
         else:
             context_id = context_service.save({})
-            conv = Conversation(
+            conv = Conversationersation(
                 _id=ObjectId(conv_id), user_id=user.id, context_id=context_id
             )
+
+        print(context)
 
         objects = []
         varnames = []
@@ -108,6 +110,7 @@ async def chat(
             k for k, v in context.items() if not isinstance(v, CONTEXT_ALLOWED_TYPES)
         ]
         for key in keys_to_remove:
+            print(key)
             del context[key]
 
         context_service.update(conv.context_id, context)

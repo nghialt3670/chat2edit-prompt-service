@@ -31,15 +31,15 @@ def apply_filter(
     elif filter_name == "Pixelate":
         filt = {"type": "Pixelate", "blocksize": filter_value * 10}
     else:
-        raise
+        raise ValueError()
 
-    canvas = deepcopy(canvas)
     if objects:
         object_idxs = get_object_idxs(canvas, objects)
         for i in object_idxs:
             obj = canvas.objects[i]
             obj.filters.append(filt)
     else:
+        canvas = deepcopy(canvas)
         canvas.backgroundImage.filters.append(filt)
         for obj in canvas.objects:
             if isinstance(obj, FabricImage):

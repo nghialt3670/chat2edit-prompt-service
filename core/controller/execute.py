@@ -37,6 +37,7 @@ async def execute(
             await wrapper_func(context)
 
         except Exception as e:
+            print(traceback.format_exc())
             signal = ExecSignal(status="error", text=str(e))
             break
 

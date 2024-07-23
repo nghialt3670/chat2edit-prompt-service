@@ -17,11 +17,11 @@ class MessageResponse(BaseModel):
     timestamp: int
 
 
-class ConvResponse(BaseModel):
+class ConversationResponse(BaseModel):
     messages: List[MessageResponse]
 
 
-@router.get("/convs/{conv_id}", response_model=ConvResponse)
+@router.get("/convs/{conv_id}", response_model=ConversationResponse)
 async def get_conversation(
     conv_id: str,
     clerk_user_id: str = Depends(clerk_validate_user),
@@ -41,7 +41,7 @@ async def get_conversation(
             for m in (c.request, c.response)
             if c.response
         ]
-        return ConvResponse(messages=messages)
+        return ConversationResponse(messages=messages)
 
     except Exception:
         print(traceback.format_exc())

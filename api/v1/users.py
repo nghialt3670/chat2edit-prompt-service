@@ -14,14 +14,14 @@ class SettingsResponse(BaseModel):
     theme: Literal["dark", "light"]
 
 
-class ConvResponse(BaseModel):
+class ConversationResponse(BaseModel):
     id: str
     title: str
 
 
 class UserResponse(BaseModel):
     settings: SettingsResponse
-    convs: List[ConvResponse]
+    convs: List[ConversationResponse]
 
 
 @router.get("/users/me", response_model=UserResponse)
@@ -43,7 +43,10 @@ async def get_user_details(
         convs = conv_service.find_by_user_id(user.id)
         return UserResponse(
             settings=SettingsResponse(theme=user.settings.theme),
-            convs=[ConvResponse(id=str(conv.id), title=conv.title) for conv in convs],
+            convs=[
+                ConversationResponse(id=str(conv.id), title=conv.title)
+                for conv in convs
+            ],
         )
 
     except Exception:
