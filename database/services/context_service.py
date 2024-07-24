@@ -65,7 +65,6 @@ class ContextService:
 
     def save(self, context: Dict[str, Any]) -> ObjectId:
         json_str = json.dumps(context, cls=CustomEncoder)
-        print(json_str)
         json_bytes = json_str.encode()
         context_id = self._gridfs.put(json_bytes)
         self._redis.set(str(context_id), json_bytes, self._cache_exp_secs)

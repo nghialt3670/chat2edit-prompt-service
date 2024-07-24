@@ -45,4 +45,4 @@ async def get_conversation(
 
     except Exception:
         print(traceback.format_exc())
-        raise HTTPException(status_code=500)
+        raise HTTPException(500)

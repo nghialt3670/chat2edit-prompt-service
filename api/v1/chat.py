@@ -84,8 +84,6 @@ async def chat(
             context_id = context_service.save({})
             conv = Conversationersation(user_id=user.id, context_id=context_id)
 
-        print(context)
-
         objects = []
         varnames = []
         req_file_ids = []
@@ -120,7 +118,6 @@ async def chat(
             k for k, v in context.items() if not isinstance(v, CONTEXT_ALLOWED_TYPES)
         ]
         for key in keys_to_remove:
-            print(key)
             del context[key]
 
         context_service.update(conv.context_id, context)
