@@ -35,11 +35,21 @@ provider = FabricProvider(
     ]
 )
 
+class UpdateResponse(BaseModel):
+    convId: str
+    fileIds: List[str]
+
+
+class MessageResponse(BaseModel):
+    text: str
+    fileIds: List[str]
+    timestamp: int
+
 
 class ChatResponse(BaseModel):
     status: Literal["success", "error"]
-    text: str = Field(default="")
-    file_ids: List[str] = Field(default_factory=list)
+    update: UpdateResponse
+    message: Optional[MessageResponse] = None
 
 
 MAX_CYCLES = 6
@@ -72,9 +82,7 @@ async def chat(
             context = context_service.load(conv.context_id)
         else:
             context_id = context_service.save({})
-            conv = Conversationersation(
-                _id=ObjectId(conv_id), user_id=user.id, context_id=context_id
-            )
+            conv = Conversationersation(user_id=user.id, context_id=context_id)
 
         print(context)
 
@@ -95,6 +103,8 @@ async def chat(
                 context[varname] = canvas
             else:
                 raise NotImplementedError()
+            
+        update = UpdateResponse(convId=str(conv.id), fileIds=[str(id) for id in req_file_ids])
 
         cycles = [cycle for cycle in conv.chat_cycles if cycle.response][-MAX_CYCLES:]
         context.update(**{f.__name__: f for f in provider.get_functions()})
@@ -120,7 +130,7 @@ async def chat(
         if not response:
             conv.title = "ERROR"
             conv_service.save(conv)
-            return ChatResponse(status="error")
+            return ChatResponse(status="error", update=update)
 
         for varname in response.varnames:
             obj = context[varname]
@@ -131,10 +141,16 @@ async def chat(
 
         conv.title = response.text
         conv_service.save(conv)
+        
+        
         return ChatResponse(
             status="success",
-            text=response.text,
-            file_ids=[str(id) for id in curr_cycle.response.file_ids],
+            update=update,
+            message=MessageResponse(
+                text=curr_cycle.response.text,
+                fileIds=[str(id) for id in curr_cycle.response.file_ids],
+                timestamp=curr_cycle.response.timestamp
+            )
         )
 
     except Exception:

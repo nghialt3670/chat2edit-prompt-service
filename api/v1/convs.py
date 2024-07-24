@@ -13,7 +13,7 @@ router = APIRouter(prefix="/api/v1")
 
 class MessageResponse(BaseModel):
     text: str
-    file_ids: List[str]
+    fileIds: List[str]
     timestamp: int
 
 
@@ -36,7 +36,7 @@ async def get_conversation(
             raise HTTPException(404)
 
         messages = [
-            MessageResponse(text=m.text, file_ids=m.file_ids, timestamp=m.timestamp)
+            MessageResponse(text=m.text, fileIds=m.file_ids, timestamp=m.timestamp)
             for c in conv.chat_cycles
             for m in (c.request, c.response)
             if c.response
