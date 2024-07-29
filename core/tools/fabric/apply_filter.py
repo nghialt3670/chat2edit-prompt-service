@@ -15,7 +15,8 @@ def apply_filter(
     objects: Optional[List[FabricImage]] = None,
 ) -> FabricCanvas:
     filt = None
-    filter_value -= 1
+    if filter_value: 
+        filter_value -= 1
     if filter_name == "Grayscale":
         filt = {"type": "Grayscale", "mode": "average"}
     elif filter_name == "Invert":
