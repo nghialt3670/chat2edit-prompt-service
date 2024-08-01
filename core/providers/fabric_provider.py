@@ -202,3 +202,21 @@ class FabricProvider(Provider):
             canvas.objects.append(obj_idx)
 
         return canvas
+
+    def create_text(
+        self,
+        content: str,
+        font_family: str,
+        font_size: int,
+        font_weight: str,
+        font_style: str,
+        color: str,
+    ) -> Text:
+        return FabricTextbox(
+            text=content,
+            fontFamily=font_family,
+            fontSize=font_size,
+            fontWeight=font_weight,
+            fontStyle=font_style,
+            fill=color,
+        )

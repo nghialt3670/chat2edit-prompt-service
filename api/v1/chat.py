@@ -32,8 +32,11 @@ provider = FabricProvider(
         "scale",
         "move",
         "shift",
+        "replace",
+        "create_text"
     ]
 )
+
 
 class UpdateResponse(BaseModel):
     convId: str
@@ -101,8 +104,10 @@ async def chat(
                 context[varname] = canvas
             else:
                 raise NotImplementedError()
-            
-        update = UpdateResponse(convId=str(conv.id), fileIds=[str(id) for id in req_file_ids])
+
+        update = UpdateResponse(
+            convId=str(conv.id), fileIds=[str(id) for id in req_file_ids]
+        )
 
         cycles = [cycle for cycle in conv.chat_cycles if cycle.response][-MAX_CYCLES:]
         context.update(**{f.__name__: f for f in provider.get_functions()})
@@ -125,7 +130,7 @@ async def chat(
         response = curr_cycle.response
 
         if not response:
-            conv.title = "ERROR"
+            conv.title = "ERROR" if not conv.title else conv.title
             conv_service.save(conv)
             return ChatResponse(status="error", update=update)
 
@@ -138,16 +143,15 @@ async def chat(
 
         conv.title = response.text
         conv_service.save(conv)
-        
-        
+
         return ChatResponse(
             status="success",
             update=update,
             message=MessageResponse(
                 text=curr_cycle.response.text,
                 fileIds=[str(id) for id in curr_cycle.response.file_ids],
-                timestamp=curr_cycle.response.timestamp
-            )
+                timestamp=curr_cycle.response.timestamp,
+            ),
         )
 
     except Exception:

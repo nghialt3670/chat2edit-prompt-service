@@ -57,8 +57,6 @@ class ContextService:
             self._gridfs.delete(ObjectId(id))
 
         json_str = json.dumps(context, cls=CustomEncoder)
-        with open("temp.json", "w") as f:
-            f.write(json_str)
         json_bytes = json_str.encode()
         self._gridfs.put(json_bytes, _id=ObjectId(id))
         self._redis.set(str(id), json_bytes, self._cache_exp_secs)
