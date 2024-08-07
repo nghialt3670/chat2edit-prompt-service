@@ -2,7 +2,7 @@ import inspect
 from typing import Callable, Iterable
 
 from core.controller.helpers import extract_thinking_commands
-from database.models.conversation.chat_cycle import ChatCycle
+from db.models import ChatCycle
 
 PROMPT_TEMPLATE = """
 Only use these functions:

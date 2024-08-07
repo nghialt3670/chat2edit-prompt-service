@@ -5,9 +5,8 @@ import textwrap
 import traceback
 from typing import Any, Coroutine, Dict, Iterable
 
-from core.providers.exec_signal import ExecSignal
-from core.providers.provider import Provider
-from database.models.conversation.exec_message import ExecMessage
+from core.providers import ExecSignal, Provider
+from db.models import ExecMessage
 
 WRAPPER_FUNCTION_TEMPLATE = """
 async def __wrapper_func(context):

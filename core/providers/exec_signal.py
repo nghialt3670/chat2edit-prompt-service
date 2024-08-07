@@ -1,6 +1,6 @@
 from typing import List, Literal, Optional
 
-from database.models.conversation.chat_message import ChatMessage
+from db.models import ChatMessage
 from pydantic import BaseModel, Field
 
 

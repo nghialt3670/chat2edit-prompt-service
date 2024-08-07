@@ -9,7 +9,7 @@ from core.tools.fabric import (apply_filter, detect_objects, flip_objects,
                                move_objects, remove_objects,
                                replace_objects_with_prompt, rotate_objects,
                                scale_objects, shift_objects)
-from database.models import ChatMessage
+from db.models import ChatMessage
 
 Image = TypeVar("Image", FabricCanvas, FabricImage, None)
 Object = TypeVar("Object", FabricImage, None)

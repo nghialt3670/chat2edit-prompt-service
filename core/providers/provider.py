@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Callable, Dict, List, Literal, Optional
 
 from core.providers.exec_signal import ExecSignal
-from database.models.conversation.chat_message import ChatMessage
+from db.models import ChatMessage
 
 DEFAULT_SIGNAL = ExecSignal(status="info", text="Commands executed successfully.")
 
@@ -27,7 +27,7 @@ class Provider(ABC):
         return self._context
 
     def clear_signal(self) -> None:
-        self._signal = None
+        self._signal = DEFAULT_SIGNAL
 
     def set_context(self, context: Dict[str, Any]) -> None:
         self._context = context
