@@ -2,6 +2,7 @@ import os
 from typing import List
 
 import aiohttp
+
 from core.schemas.fabric.fabric_canvas import FabricCanvas
 from core.schemas.fabric.fabric_image import FabricImage
 from core.utils.convert import image_to_base64, image_to_mask
@@ -11,14 +12,17 @@ ML_SERVICE_API_VERSION = os.getenv("ML_SERVICE_API_VERSION")
 LAMA_ENDPOINT = f"{ML_SERVICE_BASE_URL}/api/v{ML_SERVICE_API_VERSION}/predict/lama"
 
 
-async def inpaint_objects(canvas: FabricCanvas, objects: List[FabricImage]) -> None:
+async def inpaint_objects(canvas: FabricCanvas, object_idxs: List[int]) -> None:
     base_image = canvas.backgroundImage
 
     if not base_image.is_size_initialized():
         await base_image.init_size()
 
     request_masks = []
-    for obj in objects:
+    for i in object_idxs:
+        obj = canvas.objects[i]
+        if not isinstance(obj, FabricImage) or not obj.label_to_score or obj.inpainted:
+            continue
         obj_image = await obj.to_image()
         obj_mask = image_to_mask(obj_image)
         request_mask = {
@@ -42,8 +46,8 @@ async def inpaint_objects(canvas: FabricCanvas, objects: List[FabricImage]) -> N
                 raise Exception(f"Failed to request image-inpainting model")
             response_dict = await response.json()
 
-    for obj in objects:
-        obj.inpainted = True
+    for i in object_idxs:
+        canvas.objects[i].inpainted = True
 
     base64 = response_dict["image"]["src"]
     data_url = f"data:image/png;base64,{base64}"

@@ -15,12 +15,9 @@ async def remove_objects(
     object_idxs = get_object_idxs(canvas, objects)
     canvas = deepcopy(canvas)
 
-    not_inpainted_objects = []
-    for i in object_idxs:
-        obj = canvas.objects[i]
-        canvas.objects.pop(i)
-        if isinstance(obj, FabricImage) and not obj.inpainted:
-            not_inpainted_objects.append(obj)
+    await inpaint_objects(canvas, object_idxs)
 
-    await inpaint_objects(canvas, not_inpainted_objects)
+    for i in object_idxs:
+        canvas.objects.pop(i)
+
     return canvas

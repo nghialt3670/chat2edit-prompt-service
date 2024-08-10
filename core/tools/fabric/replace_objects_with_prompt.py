@@ -3,6 +3,7 @@ from copy import deepcopy
 from typing import List
 
 import aiohttp
+
 from core.schemas.fabric.fabric_canvas import FabricCanvas
 from core.schemas.fabric.fabric_object import FabricObject
 from core.utils.convert import image_to_base64, image_to_mask

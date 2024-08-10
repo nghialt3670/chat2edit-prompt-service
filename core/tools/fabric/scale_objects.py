@@ -17,7 +17,8 @@ async def scale_objects(
     object_idxs = get_object_idxs(canvas, objects)
     canvas = deepcopy(canvas)
 
-    not_inpainted_objects = []
+    await inpaint_objects(canvas, object_idxs)
+
     for i in object_idxs:
         obj = canvas.objects[i]
         if axis == "x":
@@ -28,8 +29,4 @@ async def scale_objects(
             obj.scaleX *= factor
             obj.scaleY *= factor
 
-        if isinstance(obj, FabricImage) and not obj.inpainted:
-            not_inpainted_objects.append(obj)
-
-    await inpaint_objects(canvas, not_inpainted_objects)
     return canvas
