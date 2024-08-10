@@ -1,7 +1,8 @@
 from typing import List, Literal, Optional
 
-from db.models import ChatMessage
 from pydantic import BaseModel, Field
+
+from db.models import ChatMessage
 
 
 class ExecSignal(BaseModel):

@@ -1,9 +1,10 @@
 import os
 
-from db.services import ConvService, CanvasService, ContextService
 from gridfs import GridFS
 from pymongo import MongoClient
 from redis import Redis
+
+from db.services import CanvasService, ContextService, ConvService
 
 client = MongoClient(os.getenv("MONGO_URL"))
 database = client.get_database(os.getenv("MONGO_DB_NAME"))
@@ -15,7 +16,7 @@ contexts = GridFS(database, "contexts")
 
 
 def get_db():
-    return database 
+    return database
 
 
 def get_conv_service():

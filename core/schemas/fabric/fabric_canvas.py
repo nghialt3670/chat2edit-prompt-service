@@ -3,11 +3,12 @@ from io import BytesIO
 from typing import Any, List, Optional, Union
 
 from bson import ObjectId
+from fastapi import UploadFile
+from pydantic import BaseModel, Field
+
 from core.schemas.fabric.fabric_group import FabricGroup
 from core.schemas.fabric.fabric_image import FabricImage
 from core.schemas.fabric.fabric_textbox import FabricTextbox
-from fastapi import UploadFile
-from pydantic import BaseModel, Field
 
 
 class FabricCanvas(BaseModel):

@@ -2,6 +2,7 @@ import os
 from typing import Iterable, List, Optional
 
 import openai
+
 from core.llms.llm import LLM
 
 openai.api_key = os.getenv("OPENAI_API_KEY")

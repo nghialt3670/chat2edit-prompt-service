@@ -1,4 +1,5 @@
 from typing import Any
+
 from bson import ObjectId
 from pydantic import BaseModel, Field, validator
 
@@ -11,8 +12,8 @@ class Document(BaseModel):
         json_encoders = {
             ObjectId: lambda v: str(v),
         }
-        
-    @validator('id', pre=True, always=True)
+
+    @validator("id", pre=True, always=True)
     def parse_object_id(cls, value: Any) -> ObjectId:
         try:
             return ObjectId(value)

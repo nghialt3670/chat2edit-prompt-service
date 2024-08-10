@@ -3,9 +3,10 @@ from uuid import uuid4
 
 import PIL
 import PIL.Image
+from pydantic import Field
+
 from core.schemas.fabric.fabric_object import FabricObject
 from core.utils.convert import image_to_base64, src_to_image
-from pydantic import Field
 
 
 class FabricImage(FabricObject):

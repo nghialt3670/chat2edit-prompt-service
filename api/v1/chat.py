@@ -1,12 +1,16 @@
-from base64 import b64encode
 import traceback
+from base64 import b64encode
 from typing import Dict, List, Literal, Optional
 
 import PIL
 import PIL.Image
 from bson import ObjectId
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from fastapi.responses import JSONResponse
 from gridfs import GridFS
+from pydantic import BaseModel
+from pymongo.database import Database
+
 from core.controller import fullfill
 from core.llms import LLM
 from core.providers import Provider
@@ -18,11 +22,9 @@ from deps.database import (get_canvas_service, get_context_service,
                            get_conv_service, get_db)
 from deps.llms import get_llm
 from deps.providers import get_providers
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
-from pydantic import BaseModel
-from pymongo.database import Database
 
 router = APIRouter(prefix="/api/v1")
+
 
 class ChatRequest(BaseModel):
     conversation_id: str
@@ -73,7 +75,7 @@ async def chat(
         selected_provider = providers["fabric"]
         gridfs = GridFS(db, bucket_name)
         for file_id in file_ids:
-            file_obj = gridfs.get(ObjectId(file_id)) 
+            file_obj = gridfs.get(ObjectId(file_id))
             filename = file_obj.filename
             file_type = file_obj.content_type
             file_bytes = file_obj.read()
@@ -86,7 +88,7 @@ async def chat(
                     canvas = FabricCanvas(backgroundImage=bg_img)
                 else:
                     canvas = FabricCanvas.model_validate_json(file_bytes)
-                    
+
                 alias = TYPE_TO_ALIAS[FabricCanvas]
                 idx = conv.alias_to_count.get(alias, 0)
                 conv.alias_to_count[alias] = idx + 1
@@ -106,7 +108,7 @@ async def chat(
         curr_cycle = await fullfill(cycles, context, request, llm, selected_provider)
         conv.chat_cycles.append(curr_cycle)
         conv_service.save(conv)
-        
+
         # Filter out unsupport types
         keys_to_remove = [
             k for k, v in context.items() if not isinstance(v, CONTEXT_ALLOWED_TYPES)
@@ -131,10 +133,7 @@ async def chat(
             else:
                 raise NotImplementedError()
 
-        return ChatResponse(
-            text=response.text,
-            file_ids=res_file_ids
-        )
+        return ChatResponse(text=response.text, file_ids=res_file_ids)
 
     except Exception:
         print(traceback.format_exc())

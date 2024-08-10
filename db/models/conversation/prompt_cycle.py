@@ -1,7 +1,8 @@
 from typing import Optional
 
-from db.models.conversation.exec_message import ExecMessage
 from pydantic import BaseModel
+
+from db.models.conversation.exec_message import ExecMessage
 
 
 class PromptCycle(BaseModel):

@@ -1,9 +1,10 @@
 from typing import Any
 
 from bson import ObjectId
-from core.schemas.fabric.fabric_canvas import FabricCanvas
 from fastapi import UploadFile
 from gridfs import GridFS
+
+from core.schemas.fabric.fabric_canvas import FabricCanvas
 
 
 class CanvasService:

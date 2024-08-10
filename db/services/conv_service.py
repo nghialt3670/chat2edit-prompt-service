@@ -1,9 +1,10 @@
 from typing import List, Optional
 
 from bson import ObjectId
-from db.models import Conversation
 from pymongo.collection import Collection
 from redis import Redis
+
+from db.models import Conversation
 
 
 class ConvService:
