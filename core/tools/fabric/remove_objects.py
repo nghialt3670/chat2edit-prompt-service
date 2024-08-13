@@ -17,7 +17,6 @@ async def remove_objects(
 
     await inpaint_objects(canvas, object_idxs)
 
-    for i in object_idxs:
-        canvas.objects.pop(i)
+    canvas.objects = [obj for i, obj in enumerate(canvas.objects) if i not in object_idxs]
 
     return canvas
