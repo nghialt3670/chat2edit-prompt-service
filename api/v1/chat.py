@@ -120,7 +120,6 @@ async def chat(
 
         response = curr_cycle.response
         if not response:
-            conv_service.save(conv)
             raise HTTPException(500)
 
         # Save the response files and get the ids
