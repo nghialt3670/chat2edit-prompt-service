@@ -45,7 +45,3 @@ class FabricObject(BaseModel):
     def __hash__(self) -> int:
         return hash(self.id)
 
-    def __deepcopy__(self, memo: dict[int, Any] | None = None) -> "FabricObject":
-        copied_object = super().__deepcopy__(memo)
-        copied_object.id = str(uuid4())
-        return copied_object
