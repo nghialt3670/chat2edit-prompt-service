@@ -3,7 +3,7 @@ import inspect
 import re
 import textwrap
 import traceback
-from typing import Any, Coroutine, Dict, Iterable
+from typing import Any, Coroutine, Dict, Iterable, Tuple
 
 from core.providers import ExecSignal, Provider
 from db.models import ExecMessage
@@ -55,6 +55,15 @@ async def execute(
     )
 
 
+def adjust_offsets(command: str, start: int, end: int) -> Tuple[int, int]:
+    # Convert the command to bytes and find the corresponding byte positions
+    command_bytes = command.encode('utf-8')
+    start_bytes = len(command_bytes[:start].decode('utf-8'))
+    end_bytes = len(command_bytes[:end].decode('utf-8'))
+    
+    return start_bytes, end_bytes
+
+
 def preprocess_command(command: str, context: Dict[str, Any], context_name: str = "__context") -> str:
     def replace_var(var):
         # If it is a defined coroutine function (already in context)
@@ -71,7 +80,8 @@ def preprocess_command(command: str, context: Dict[str, Any], context_name: str 
 
         for node in node_iter:
             if isinstance(node, ast.Name) and node.id != context_name:
-                start, end = node.col_offset, node.end_col_offset
+                # Adjust the offsets when the commands contains utf-8 characters
+                start, end = adjust_offsets(command, node.col_offset, node.end_col_offset)
                 replacements.append((start, end, replace_var(processed_command[start:end])))
 
         if not replacements:
