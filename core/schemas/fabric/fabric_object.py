@@ -45,3 +45,5 @@ class FabricObject(BaseModel):
     def __hash__(self) -> int:
         return hash(self.id)
 
+    def __eq__(self, value: object) -> bool:
+        return isinstance(value, FabricObject) and value.id == self.id
