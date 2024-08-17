@@ -16,6 +16,8 @@ fabric_provider = FabricProvider(
         "shift",
         "replace",
         "create_text",
+        "get_position",
+        "get_size"
     ]
 )
 

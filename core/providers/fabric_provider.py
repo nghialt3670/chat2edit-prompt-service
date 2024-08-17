@@ -220,3 +220,13 @@ class FabricProvider(Provider):
             fontStyle=font_style,
             fill=color,
         )
+
+    def get_position(self, target: Union[Image, Object, Text]) -> Tuple[int, int]:
+        return target.left, target.top
+
+    async def get_size(self, target: Union[Image, Object, Text]) -> Tuple[int, int]:
+        if isinstance(target, FabricImage) and not target.is_size_initialized():
+            await target.init_size()
+        return target.width, target.height
+    
+    
