@@ -61,8 +61,6 @@ async def chat(
     try:
         conv = conv_service.find_by_id(ObjectId(conv_id))
         context = {}
-        print(conv_id)
-        print(conv)
 
         if conv:
             context = context_service.load(conv.context_id)
