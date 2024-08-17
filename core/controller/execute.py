@@ -9,12 +9,12 @@ from core.providers import ExecSignal, Provider
 from db.models import ExecMessage
 
 WRAPPER_FUNCTION_TEMPLATE = """
-async def __wrapper_func(context):
+async def __wrapper_func(__context):
 {command}
     
     for k, v in locals().items():
-        if k != "context":
-            context[k] = v
+        if k != "__context":
+            __context[k] = v
 """
 
 
@@ -55,28 +55,33 @@ async def execute(
     )
 
 
-def preprocess_command(command: str, context: Dict[str, Any]) -> str:
-    pattern = re.compile(r"\b(\w+)\b")
-    parsed_command = ast.parse(command, mode="exec")
-    command_vars = {
-        node.id for node in ast.walk(parsed_command) if isinstance(node, ast.Name)
-    }
-
-    def replace_var(match):
-        varname = match.group(1)
-
-        # If not actually a variable name (like argument name,...)
-        if not varname in command_vars:
-            return varname
-
+def preprocess_command(command: str, context: Dict[str, Any], context_name: str = "__context") -> str:
+    def replace_var(var):
         # If it is a defined coroutine function (already in context)
-        if varname in context and inspect.iscoroutinefunction(context[varname]):
-            return f"await context['{varname}']"
+        if var in context and inspect.iscoroutinefunction(context[var]):
+            return f"await {context_name}['{var}']"
 
-        return f"context['{varname}']"
+        return f"{context_name}['{var}']"
+      
+    processed_command = command
+    while True:
+        # Re-parse the command to get fresh AST after each replacement
+        node_iter = ast.walk(ast.parse(processed_command, mode="exec"))
+        replacements = []
 
-    replaced_command = pattern.sub(replace_var, command)
-    return replaced_command
+        for node in node_iter:
+            if isinstance(node, ast.Name) and node.id != context_name:
+                start, end = node.col_offset, node.end_col_offset
+                replacements.append((start, end, replace_var(processed_command[start:end])))
+
+        if not replacements:
+            break
+
+        # Apply replacements in reverse order to avoid messing up indices
+        for start, end, replacement in sorted(replacements, reverse=True):
+            processed_command = processed_command[:start] + replacement + processed_command[end:]
+
+    return processed_command
 
 
 def create_wrapper_function(
