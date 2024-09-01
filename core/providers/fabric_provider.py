@@ -1,14 +1,29 @@
 from copy import deepcopy
-from typing import (Any, Callable, Iterable, List, Literal, Optional, Tuple,
-                    TypeVar, Union)
+from typing import (
+    Any,
+    Callable,
+    Iterable,
+    List,
+    Literal,
+    Optional,
+    Tuple,
+    TypeVar,
+    Union,
+)
 
 from core.providers.provider import Provider
-from core.schemas.fabric import (FabricCanvas, FabricImage, FabricRect,
-                                 FabricTextbox)
-from core.tools.fabric import (apply_filter, detect_objects, flip_objects,
-                               move_objects, remove_objects,
-                               replace_objects_with_prompt, rotate_objects,
-                               scale_objects, shift_objects)
+from core.schemas.fabric import FabricCanvas, FabricImage, FabricRect, FabricTextbox
+from core.tools.fabric import (
+    apply_filter,
+    detect_objects,
+    flip_objects,
+    move_objects,
+    remove_objects,
+    replace_objects_with_prompt,
+    rotate_objects,
+    scale_objects,
+    shift_objects,
+)
 from db.models import ChatMessage
 
 Image = TypeVar("Image", FabricCanvas, FabricImage, None)
@@ -228,5 +243,3 @@ class FabricProvider(Provider):
         if isinstance(target, FabricImage) and not target.is_size_initialized():
             await target.init_size()
         return target.width, target.height
-    
-    

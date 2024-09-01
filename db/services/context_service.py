@@ -6,9 +6,15 @@ from gridfs import GridFS
 from pydantic import BaseModel
 from redis import Redis
 
-from core.schemas.fabric import (FabricCanvas, FabricGroup, FabricImage,
-                                 FabricObject, FabricRect, FabricTextbox,
-                                 LayoutManagerModel)
+from core.schemas.fabric import (
+    FabricCanvas,
+    FabricGroup,
+    FabricImage,
+    FabricObject,
+    FabricRect,
+    FabricTextbox,
+    LayoutManagerModel,
+)
 
 
 class CustomEncoder(json.JSONEncoder):
@@ -47,7 +53,7 @@ class CustomDecoder(json.JSONDecoder):
 
 class ContextService:
     def __init__(
-        self, gridfs: GridFS, redis: Redis, cache_exp_secs: int = 3600
+        self, gridfs: GridFS, redis: Optional[Redis], cache_exp_secs: int = 3600
     ) -> None:
         self._gridfs = gridfs
         self._redis = redis
@@ -60,14 +66,16 @@ class ContextService:
         json_str = json.dumps(context, cls=CustomEncoder)
         json_bytes = json_str.encode()
         self._gridfs.put(json_bytes, _id=ObjectId(id))
-        self._redis.set(str(id), json_bytes, self._cache_exp_secs)
+        if self._redis:
+            self._redis.set(str(id), json_bytes, self._cache_exp_secs)
 
     def save(self, context: Dict[str, Any]) -> ObjectId:
         json_str = json.dumps(context, cls=CustomEncoder)
         json_bytes = json_str.encode()
         context_id = self._gridfs.put(json_bytes)
-        self._redis.set(str(context_id), json_bytes, self._cache_exp_secs)
-        return context_id
+        if self._redis:
+            self._redis.set(str(context_id), json_bytes, self._cache_exp_secs)
+        return ObjectId(context_id)
 
     def load(self, id: ObjectId) -> Optional[Dict[str, Any]]:
         if json_bytes := self._redis.get(str(id)):

@@ -5,7 +5,7 @@ load_dotenv()
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.v1 import chat
+from api.v1 import chat as chat_v1
 
 app = FastAPI()
 
@@ -18,4 +18,4 @@ app.add_middleware(
     expose_headers=["Content-Disposition"],
 )
 
-app.include_router(chat.router)
+app.include_router(chat_v1.router)

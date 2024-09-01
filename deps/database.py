@@ -4,14 +4,13 @@ from gridfs import GridFS
 from pymongo import MongoClient
 from redis import Redis
 
-from db.services import CanvasService, ContextService, ConvService
+from db.services import ChatService, ContextService
 
 client = MongoClient(os.getenv("MONGO_URL"))
 database = client.get_database(os.getenv("MONGO_DB_NAME"))
 redis = Redis(os.getenv("REDIS_HOST"), os.getenv("REDIS_PORT"))
 
-convs = database.get_collection("convs")
-canvases = GridFS(database, "files")
+chats = database.get_collection("prompting-chats")
 contexts = GridFS(database, "contexts")
 
 
@@ -19,12 +18,8 @@ def get_db():
     return database
 
 
-def get_conv_service():
-    return ConvService(convs, redis)
-
-
-def get_canvas_service():
-    return CanvasService(canvases)
+def get_chat_service():
+    return ChatService(chats, redis)
 
 
 def get_context_service():

@@ -2,7 +2,7 @@ from typing import List, Literal, Optional
 
 from pydantic import BaseModel, Field
 
-from db.models.conversation.chat_message import ChatMessage
+from db.models.chat_message import ChatMessage
 
 
 class ExecMessage(BaseModel):

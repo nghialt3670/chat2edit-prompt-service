@@ -57,21 +57,23 @@ async def execute(
 
 def adjust_offsets(command: str, start: int, end: int) -> Tuple[int, int]:
     # Convert the command to bytes and find the corresponding byte positions
-    command_bytes = command.encode('utf-8')
-    start_bytes = len(command_bytes[:start].decode('utf-8'))
-    end_bytes = len(command_bytes[:end].decode('utf-8'))
-    
+    command_bytes = command.encode("utf-8")
+    start_bytes = len(command_bytes[:start].decode("utf-8"))
+    end_bytes = len(command_bytes[:end].decode("utf-8"))
+
     return start_bytes, end_bytes
 
 
-def preprocess_command(command: str, context: Dict[str, Any], context_name: str = "__context") -> str:
+def preprocess_command(
+    command: str, context: Dict[str, Any], context_name: str = "__context"
+) -> str:
     def replace_var(var):
         # If it is a defined coroutine function (already in context)
         if var in context and inspect.iscoroutinefunction(context[var]):
             return f"await {context_name}['{var}']"
 
         return f"{context_name}['{var}']"
-      
+
     processed_command = command
     while True:
         # Re-parse the command to get fresh AST after each replacement
@@ -81,15 +83,21 @@ def preprocess_command(command: str, context: Dict[str, Any], context_name: str 
         for node in node_iter:
             if isinstance(node, ast.Name) and node.id != context_name:
                 # Adjust the offsets when the commands contains utf-8 characters
-                start, end = adjust_offsets(command, node.col_offset, node.end_col_offset)
-                replacements.append((start, end, replace_var(processed_command[start:end])))
+                start, end = adjust_offsets(
+                    command, node.col_offset, node.end_col_offset
+                )
+                replacements.append(
+                    (start, end, replace_var(processed_command[start:end]))
+                )
 
         if not replacements:
             break
 
         # Apply replacements in reverse order to avoid messing up indices
         for start, end, replacement in sorted(replacements, reverse=True):
-            processed_command = processed_command[:start] + replacement + processed_command[end:]
+            processed_command = (
+                processed_command[:start] + replacement + processed_command[end:]
+            )
 
     return processed_command
 

@@ -1,13 +1,13 @@
-from db.models.conversation.chat_cycle import ChatCycle
-from db.models.conversation.chat_message import ChatMessage
-from db.models.conversation.conversation import Conversation
-from db.models.conversation.exec_message import ExecMessage
-from db.models.conversation.prompt_cycle import PromptCycle
+from db.models.chat import Chat
+from db.models.chat_cycle import ChatCycle
+from db.models.chat_message import ChatMessage
+from db.models.exec_message import ExecMessage
+from db.models.prompt_cycle import PromptCycle
 
 __all__ = [
+    "Chat",
     "ChatCycle",
     "ChatMessage",
-    "Conversation",
     "ExecMessage",
     "PromptCycle",
 ]
