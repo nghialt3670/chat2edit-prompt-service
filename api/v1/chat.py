@@ -2,7 +2,7 @@ import traceback
 import zipfile
 from base64 import b64encode
 from io import BytesIO
-from typing import Any, Dict, List, Literal
+from typing import Any, Dict, List
 
 from bson import ObjectId
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Path, UploadFile
@@ -13,6 +13,8 @@ from core.llms import LLM
 from core.providers import Provider
 from core.schemas.fabric import FabricCanvas, FabricObject
 from core.schemas.fabric.fabric_image import FabricImage
+from core.types.language import Language
+from core.types.provider import Provider as ProviderType
 from db.models import ChatMessage
 from db.models.chat import Chat
 from db.services import ChatService, ContextService
@@ -35,16 +37,16 @@ async def chat(
     chat_id: str = Path(...),
     text: str = Form(...),
     files: List[UploadFile] = File(None),
-    language: Literal["vi", "en"] = Form(...),
-    provider: Literal["fabric"] = Form(...),
+    language: Language = Form(...),
+    provider: ProviderType = Form(...),
     llm: LLM = Depends(get_llm),
     providers: Dict[str, Provider] = Depends(get_providers),
     chat_service: ChatService = Depends(get_chat_service),
     context_service: ContextService = Depends(get_context_service),
 ):
-    # TODO: Bind provider with language
     try:
         provider = providers[provider]
+        provider.set_language(language)
         chat = chat_service.load(chat_id)
         files = files or []
         context = {}

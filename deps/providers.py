@@ -2,6 +2,7 @@ from typing import Dict
 
 from core.providers.fabric_provider import FabricProvider
 from core.providers.provider import Provider
+from core.types.provider import Provider as ProviderType
 
 fabric_provider = FabricProvider(
     [
@@ -21,7 +22,7 @@ fabric_provider = FabricProvider(
     ]
 )
 
-PROVIDERS = {"fabric": fabric_provider}
+PROVIDERS = {ProviderType.FABRIC: fabric_provider}
 
 
 def get_providers() -> Dict[str, Provider]:

@@ -24,6 +24,7 @@ from core.tools.fabric import (
     scale_objects,
     shift_objects,
 )
+from core.types.language import Language
 from db.models import ChatMessage
 
 Image = TypeVar("Image", FabricCanvas, FabricImage, None)
@@ -31,7 +32,7 @@ Object = TypeVar("Object", FabricImage, None)
 Text = TypeVar("Text", FabricTextbox, None)
 
 
-EXEMPLARS = """
+VIETNAMESE_EXEMPLARS = """
 Example 1:
 observation: user_request(text="Hãy xóa con chó khỏi bức ảnh", variables=[image0])
 thinking: We need detect the dog first before we can remove it.
@@ -54,6 +55,29 @@ image1 = filter(image0, filter_name="brightness", filter_value=1.15, targets=hou
 response_user(text="Đây là bức ảnh sau khi đã tăng độ sáng ngôi nhà lên 15%.", variables=[image1])
 """
 
+ENGLISH_EXEMPLARS = """
+Example 1:
+observation: user_request(text="Please remove the dog from the photo", variables=[image0])
+thinking: We need to detect the dog first before we can remove it.
+commands:
+dogs = detect(image0, prompt="dog")
+observation: sys_warning(text="Detected 2 `dogs` in the image", variables=[annotated_image])
+thinking: There are 2 dogs in the image, so we need to show the annotated image and ask the user to specify which one to remove.
+commands:
+response_user(text="There are 2 dogs in the image, which one would you like to remove?", variables=[annotated_image])
+
+Example 2:
+observation: user_request(text="Please increase the brightness of the house by about 15%", variables=[image0])
+thinking: We need to detect the house first before we can increase its brightness.
+commands:
+houses = detect(image0, prompt="house")
+observation: sys_info(text="Detected 1 `house` in the image")
+thinking: We detected the house, now we can proceed to the next step.
+commands:
+image1 = filter(image0, filter_name="brightness", filter_value=1.15, targets=houses)
+response_user(text="Here is the image after increasing the brightness of the house by 15%.", variables=[image1])
+"""
+
 FILTER_NAME_MAPPINGS = {
     "grayscale": "Grayscale",
     "gray": "Grayscale",
@@ -71,15 +95,22 @@ FILTER_NAME_MAPPINGS = {
 
 
 class FabricProvider(Provider):
-    def __init__(self, function_names: Iterable[str]) -> None:
-        super().__init__()
+    def __init__(
+        self, function_names: Iterable[str], language: Language = Language.ENGLISH
+    ) -> None:
+        super().__init__(language)
         self._function_names = function_names
 
     def get_functions(self) -> List[Callable]:
         return [getattr(self, name) for name in self._function_names]
 
     def get_exemplars(self) -> str:
-        return EXEMPLARS
+        if self._language == Language.VIETNAMESE:
+            return VIETNAMESE_EXEMPLARS
+        if self._language == Language.ENGLISH:
+            return ENGLISH_EXEMPLARS
+
+        raise ValueError(f"Language {self._language} is not supported")
 
     def response_user(self, text: str, variables: Optional[List[Any]] = None) -> None:
         response = None

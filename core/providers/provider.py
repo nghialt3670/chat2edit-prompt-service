@@ -2,14 +2,17 @@ from abc import ABC, abstractmethod
 from typing import Any, Callable, Dict, List, Literal, Optional
 
 from core.providers.exec_signal import ExecSignal
+from core.types import language
+from core.types.language import Language
 from db.models import ChatMessage
 
 DEFAULT_SIGNAL = ExecSignal(status="info", text="Commands executed successfully.")
 
 
 class Provider(ABC):
-    def __init__(self) -> None:
+    def __init__(self, language: Language = Language.ENGLISH) -> None:
         self._signal = DEFAULT_SIGNAL
+        self._language = language
         self._context = {}
 
     @abstractmethod
@@ -19,6 +22,9 @@ class Provider(ABC):
     @abstractmethod
     def get_exemplars(self) -> str:
         pass
+
+    def set_language(self, language: Language) -> None:
+        self._language = language
 
     def get_signal(self) -> ExecSignal:
         return self._signal
