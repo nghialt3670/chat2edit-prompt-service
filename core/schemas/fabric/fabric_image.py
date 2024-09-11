@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional
+from typing import Dict, List, Literal, Optional
 from uuid import uuid4
 
 import PIL
@@ -10,7 +10,7 @@ from core.utils.convert import image_to_base64, src_to_image
 
 
 class FabricImage(FabricObject):
-    type: str = "Image"
+    type: Literal["Image"] = "Image"
     cropX: int = 0
     cropY: int = 0
     src: str = Field(repr=False)

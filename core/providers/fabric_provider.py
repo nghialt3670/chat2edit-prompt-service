@@ -24,6 +24,7 @@ from core.tools.fabric import (
     scale_objects,
     shift_objects,
 )
+from core.tools.fabric.segment_object import segment_object
 from core.types.language import Language
 from db.models import ChatMessage
 
@@ -53,6 +54,13 @@ thinking: We detected the house, now we can do the next step.
 commands:
 image1 = filter(image0, filter_name="brightness", filter_value=1.15, targets=houses)
 response_user(text="Đây là bức ảnh sau khi đã tăng độ sáng ngôi nhà lên 15%.", variables=[image1])
+
+Example 3:
+observation: user_request(text="Cắt cho tôi vật thể trong khung", variables=[image0, box0])
+thinking: The user provided a box so we should use segment function to segment the object and return it to the user.
+commands:
+object = segment(image0, box=box0)
+response_user(text="Đây là vật thể đã được cắt ra từ khung.", variables=[object])
 """
 
 ENGLISH_EXEMPLARS = """
@@ -76,6 +84,13 @@ thinking: We detected the house, now we can proceed to the next step.
 commands:
 image1 = filter(image0, filter_name="brightness", filter_value=1.15, targets=houses)
 response_user(text="Here is the image after increasing the brightness of the house by 15%.", variables=[image1])
+
+Example 3:
+observation: user_request(text="Please crop the object in the box", variables=[image0, box0])
+thinking: The user provided a box, so we should use the segment function to isolate the object and return it to the user.
+commands:
+object = segment(image0, box=box0)
+response_user(text="Here is the object cropped from the box.", variables=[object])
 """
 
 FILTER_NAME_MAPPINGS = {
@@ -140,6 +155,9 @@ class FabricProvider(Provider):
 
         return objects
 
+    async def segment(self, image: Image, box: Tuple[int, int, int, int]) -> Object:
+        return await segment_object(image, box)
+
     async def remove(
         self, image: Image, targets: List[Union[Image, Object, Text]]
     ) -> Image:
@@ -176,7 +194,9 @@ class FabricProvider(Provider):
     ) -> Image:
         if targets:
             return await rotate_objects(image, targets, angle)
-        return await rotate_objects(image, image.backgroundImage, angle)
+
+        image.backgroundImage.rotate(angle)
+        return image
 
     async def flip(
         self,
@@ -186,7 +206,9 @@ class FabricProvider(Provider):
     ) -> Image:
         if targets:
             return await flip_objects(image, targets, axis)
-        return await flip_objects(image, image.backgroundImage, axis)
+
+        image.backgroundImage.flip(axis)
+        return image
 
     async def move(
         self,

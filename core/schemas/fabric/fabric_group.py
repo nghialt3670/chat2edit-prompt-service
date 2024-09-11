@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import List, Literal, Union
 
 from pydantic import BaseModel
 
@@ -8,12 +8,12 @@ from core.schemas.fabric.fabric_textbox import FabricTextbox
 
 
 class LayoutManagerModel(BaseModel):
-    type: str = "layoutManager"
+    type: Literal["layoutManager"] = "layoutManager"
     strategy: str = "fit-content"
 
 
 class FabricGroup(FabricObject):
-    type: str = "Group"
+    type: Literal["Group"] = "Group"
     subTargetCheck: bool = False
     interactive: bool = False
     layoutManager: LayoutManagerModel = LayoutManagerModel()

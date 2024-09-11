@@ -8,6 +8,7 @@ fabric_provider = FabricProvider(
     [
         "response_user",
         "detect",
+        "segment",
         "remove",
         "filter",
         "rotate",

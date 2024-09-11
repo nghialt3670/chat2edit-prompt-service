@@ -1,10 +1,10 @@
-from typing import List
+from typing import List, Literal
 
 from core.schemas.fabric.fabric_object import FabricObject
 
 
 class FabricTextbox(FabricObject):
-    type: str = "Textbox"
+    type: Literal["Textbox"] = "Textbox"
     fontSize: int = 40
     fontWeight: str = "normal"
     fontFamily: str = "Times New Roman"

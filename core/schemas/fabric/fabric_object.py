@@ -1,4 +1,4 @@
-from typing import Any, List, Optional
+from typing import Any, List, Literal, Optional, Tuple
 from uuid import uuid4
 
 from pydantic import BaseModel, Field
@@ -10,10 +10,10 @@ class FabricObject(BaseModel):
     version: str = "6.0.1"
     originX: str = "left"
     originY: str = "top"
-    left: int = 0
-    top: int = 0
-    width: Optional[int] = None
-    height: Optional[int] = None
+    left: float = 0.0
+    top: float = 0.0
+    width: Optional[float] = None
+    height: Optional[float] = None
     fill: str = "rgb(0,0,0)"
     selectable: Optional[bool] = True
     stroke: Optional[str] = None
@@ -38,6 +38,20 @@ class FabricObject(BaseModel):
     globalCompositeOperation: str = "source-over"
     skewX: int = 0
     skewY: int = 0
+    
+    def get_box(self) -> Tuple[int, int, int, int]:
+        return round(self.left), round(self.top), round(self.left + self.width), round(self.top + self.height)
+
+    def rotate(self, angle: int) -> None:
+        self.angle += angle
+
+    def flip(self, axis: Literal["x", "y"]) -> None:
+        if axis == "x":
+            self.flipX = not self.flipX
+        elif axis == "y":
+            self.flipY = not self.flipY
+        else:
+            raise ValueError("Invalid argument for axis")
 
     def is_size_initialized(self) -> bool:
         return self.width and self.height
