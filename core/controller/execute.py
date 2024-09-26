@@ -1,12 +1,17 @@
 import ast
 import inspect
-import re
 import textwrap
+import time
 import traceback
 from typing import Any, Coroutine, Dict, Iterable, Tuple
 
-from core.providers import ExecSignal, Provider
-from db.models import ExecMessage
+from core.providers.provider import Provider
+from models.db.context_message import ContextMessage
+from models.db.execution import Execution
+
+DEFAULT_FEEDBACK = ContextMessage(
+    src="system", type="info", text="Commands executed successfully"
+)
 
 WRAPPER_FUNCTION_TEMPLATE = """
 async def __wrapper_func(__context):
@@ -20,39 +25,30 @@ async def __wrapper_func(__context):
 
 async def execute(
     commands: Iterable[str],
-    context: Dict[str, Any],
     provider: Provider,
-) -> ExecMessage:
-    signal = None
-    executed_commands = []
-    provider.set_context(context)
+) -> Execution:
+    execution = Execution(feedback=DEFAULT_FEEDBACK)
+    provider.set_execution(execution)
+    context_dict = provider.get_context_dict()
 
-    for command in commands:
-        executed_commands.append(command)
-        command = preprocess_command(command, context)
-
+    for cmd in commands:
+        start = time.time()
         try:
-            wrapper_func = create_wrapper_function(WRAPPER_FUNCTION_TEMPLATE, command)
-            await wrapper_func(context)
+            cmd = preprocess_command(cmd, context_dict)
+            function = create_wrapper_function(WRAPPER_FUNCTION_TEMPLATE, cmd)
+            await function(context_dict)
 
         except Exception as e:
-            print(traceback.format_exc())
-            signal = ExecSignal(status="error", text=str(e))
+            execution.feedback = ContextMessage(src="system", type="error", text=str(e))
+            execution.traceback = traceback.format_exc()
+
+        execution.durations.append(time.time() - start)
+        execution.commands.append(cmd)
+
+        if execution.feedback.type != "info" or execution.response:
             break
 
-        signal = provider.get_signal()
-        provider.clear_signal()
-
-        if signal and signal.status in {"warning", "error"}:
-            break
-
-    return ExecMessage(
-        status=signal.status,
-        commands=executed_commands,
-        text=signal.text,
-        varnames=signal.varnames,
-        response=signal.response,
-    )
+    return execution
 
 
 def adjust_offsets(command: str, start: int, end: int) -> Tuple[int, int]:
@@ -76,19 +72,14 @@ def preprocess_command(
 
     processed_command = command
     while True:
-        # Re-parse the command to get fresh AST after each replacement
-        node_iter = ast.walk(ast.parse(processed_command, mode="exec"))
         replacements = []
+        for node in ast.walk(ast.parse(processed_command, mode="exec")):
+            if not isinstance(node, ast.Name) or node.id == context_name:
+                continue
 
-        for node in node_iter:
-            if isinstance(node, ast.Name) and node.id != context_name:
-                # Adjust the offsets when the commands contains utf-8 characters
-                start, end = adjust_offsets(
-                    command, node.col_offset, node.end_col_offset
-                )
-                replacements.append(
-                    (start, end, replace_var(processed_command[start:end]))
-                )
+            # Adjust the offsets when the commands contains utf-8 characters
+            start, end = adjust_offsets(command, node.col_offset, node.end_col_offset)
+            replacements.append((start, end, replace_var(processed_command[start:end])))
 
         if not replacements:
             break

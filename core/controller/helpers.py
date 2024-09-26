@@ -3,9 +3,9 @@ from typing import List, Tuple
 
 
 def extract_thinking_commands(text: str) -> Tuple[str, List[str]]:
-    text = text.replace("thinking:", "$")
-    text = text.replace("commands:", "$")
-    text = text.replace("observation:", "$")
+    text = text.replace("OBSERVATION:", "$")
+    text = text.replace("THINKING:", "$")
+    text = text.replace("COMMANDS:", "$")
     parts = [part.strip() for part in text.split("$")]
     parts = [part for part in parts if part]
     thinking, commands = parts[0], parts[1]

@@ -1,30 +1,27 @@
-from typing import Dict
-
-from core.providers.fabric_provider import FabricProvider
+from core.providers.fabric.fabric_provider import FabricProvider
 from core.providers.provider import Provider
-from core.types.provider import Provider as ProviderType
+from models.provider import Provider as ProviderType
 
-fabric_provider = FabricProvider(
-    [
-        "response_user",
-        "detect",
-        "segment",
-        "remove",
-        "filter",
-        "rotate",
-        "flip",
-        "scale",
-        "move",
-        "shift",
-        "replace",
-        "create_text",
-        "get_position",
-        "get_size",
-    ]
-)
-
-PROVIDERS = {ProviderType.FABRIC: fabric_provider}
+FABRIC_PROVIDER_FUNCTIONS = [
+    "response_user",
+    "detect",
+    "segment",
+    "remove",
+    "filter",
+    "rotate",
+    "flip",
+    "scale",
+    "move",
+    "shift",
+    "replace",
+    "create_text",
+    "get_position",
+    "get_size",
+]
 
 
-def get_providers() -> Dict[str, Provider]:
-    return PROVIDERS
+def get_provider(type: ProviderType) -> Provider:
+    if type == ProviderType.FABRIC:
+        return FabricProvider(FABRIC_PROVIDER_FUNCTIONS)
+
+    raise ValueError(f"Invalid provider type: {type}")
