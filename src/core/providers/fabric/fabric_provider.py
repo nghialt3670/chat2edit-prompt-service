@@ -127,13 +127,13 @@ class FabricProvider(Provider):
 
     def convert_file_to_objects(self, file: File) -> Any:
         if file.content_type.startswith("image/"):
-            base64 = b64.b64encode(file.data).decode()
+            base64 = b64.b64encode(file.buffer).decode()
             data_url = f"data:{file.content_type};base64,{base64}"
             image = FabricImage(src=data_url, filename=file.name)
             return [FabricCanvas(backgroundImage=image)]
 
         elif file.name.endswith(".fabric"):
-            canvas = FabricCanvas.model_validate_json(file.data)
+            canvas = FabricCanvas.model_validate_json(file.buffer)
             objects = [canvas]
             boxes = [
                 obj.get_box()
@@ -153,7 +153,7 @@ class FabricProvider(Provider):
             file_bytes = obj.model_dump_json().encode()
             filename = obj.backgroundImage.filename + ".fabric"
             return File(
-                data=file_bytes,
+                buffer=file_bytes,
                 name=filename,
                 content_type="application/json",
             )
@@ -165,7 +165,7 @@ class FabricProvider(Provider):
             image_bytes = image_buffer.getvalue()
             filename = obj.filename or f"{uuid4()}.png"
             return File(
-                data=image_bytes,
+                buffer=image_bytes,
                 name=filename,
                 content_type="image/png",
             )

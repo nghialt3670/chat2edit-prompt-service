@@ -1,7 +1,7 @@
 from beanie import init_beanie
 from motor.motor_asyncio import AsyncIOMotorClient
 
-from lib.env import ENV
+from utils.env import ENV
 from models.chat import Chat
 from models.phase import ChatPhase
 

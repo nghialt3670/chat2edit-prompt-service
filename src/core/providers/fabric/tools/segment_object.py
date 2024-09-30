@@ -6,7 +6,7 @@ import PIL.Image
 
 from core.providers.fabric.models import FabricImage
 from core.providers.fabric.models.fabric_canvas import FabricCanvas
-from lib.env import ENV
+from utils.env import ENV
 from utils.convert import base64_to_image, image_to_base64
 
 API_BASE_URL = ENV.ML_SERVICE_API_BASE_URL

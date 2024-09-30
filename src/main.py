@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from lib.db import init_db
-from routes import chats, phases
+from routes import chat, phase
 
 
 @asynccontextmanager
@@ -25,5 +25,5 @@ app.add_middleware(
 )
 
 
-app.include_router(chats.router, prefix="/api")
-app.include_router(phases.router, prefix="/api")
+app.include_router(chat.router, prefix="/api")
+app.include_router(phase.router, prefix="/api")

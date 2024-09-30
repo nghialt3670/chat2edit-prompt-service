@@ -5,7 +5,7 @@ import aiohttp
 
 from core.providers.fabric.models.fabric_canvas import FabricCanvas
 from core.providers.fabric.models.fabric_image import FabricImage
-from lib.env import ENV
+from utils.env import ENV
 from utils.convert import image_to_base64, image_to_mask
 
 API_BASE_URL = ENV.ML_SERVICE_API_BASE_URL

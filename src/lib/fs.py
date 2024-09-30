@@ -1,7 +1,7 @@
 from gridfs import GridFSBucket
 from pymongo import MongoClient
 
-from src.lib.env import ENV
+from src.utils.env import ENV
 
 
 client = MongoClient(ENV.MONGO_URI)

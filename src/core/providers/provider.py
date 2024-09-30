@@ -4,7 +4,7 @@ from typing import Any, Callable, Dict, List, Literal, Optional
 
 from pydantic import TypeAdapter
 
-from lib.env import ENV
+from utils.env import ENV
 from models.chat import Context
 from models.phase import ChatPhase, Execution, Message
 from schemas.file import File
@@ -62,8 +62,8 @@ class Provider(ABC):
         self._context_dict.update({f.__name__: f for f in self.get_functions()})
 
     def get_context_buffer(self) -> bytes:
-        filtered_context = self.filter_context(self._context)
-        return self.encode_context(filtered_context)
+        filtered_context_dict = self.filter_context(self._context_dict)
+        return self.encode_context(filtered_context_dict)
 
     def get_context_dict(self) -> Dict[str, Any]:
         return self._context_dict
@@ -73,7 +73,7 @@ class Provider(ABC):
 
         for file in files:
             file_id = file.name.split(".")[0]
-            file_varnames = None
+            file_varnames = []
 
             if file_id in self._context.id_to_varnames:
                 file_varnames = self._context.id_to_varnames[file_id]
