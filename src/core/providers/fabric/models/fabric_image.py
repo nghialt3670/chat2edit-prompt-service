@@ -18,7 +18,7 @@ class FabricImage(FabricObject):
     cropX: int = Field(default=0)
     cropY: int = Field(default=0)
     src: str = Field(repr=False)
-    filters: List[FabricFilter] = Field(default_factory=create_default_filters)
+    filters: List[FabricFilter] = Field(default_factory=list)
     filename: Optional[str] = Field(default=None)
     label_to_score: Dict[str, float] = Field(default_factory=dict)
     inpainted: bool = Field(default=False)

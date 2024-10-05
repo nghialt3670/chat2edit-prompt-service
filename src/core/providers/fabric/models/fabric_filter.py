@@ -71,11 +71,3 @@ FabricFilter = Union[
     PixelateFilter,
 ]
 
-
-def create_default_filters() -> List[FabricFilter]:
-    return [
-        BrightnessFilter(brightness=0),
-        BlurFilter(blur=0),
-        ContrastFilter(contrast=0),
-        NoiseFilter(noise=0),
-    ]
