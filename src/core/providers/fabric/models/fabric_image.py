@@ -28,7 +28,9 @@ class FabricImage(FabricObject):
             for curr_filt in self.filters:
                 if curr_filt.type == filt.type:
                     curr_filt.merge(filt)
-                    break
+                    return
+                
+            self.filters.append(filt)
         else:
             self.filters.append(filt)
 

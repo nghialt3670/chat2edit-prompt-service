@@ -17,6 +17,8 @@ class GrayscaleFilter(BaseModel):
 
 class InvertFilter(BaseModel):
     type: Literal["Invert"] = Field(default="Invert")
+    alpha: bool = Field(default=False)
+    invert: bool = Field(default=True)
 
 
 class BrightnessFilter(BaseModel, AdjustableFilter):
@@ -76,5 +78,4 @@ def create_default_filters() -> List[FabricFilter]:
         BlurFilter(blur=0),
         ContrastFilter(contrast=0),
         NoiseFilter(noise=0),
-        PixelateFilter(blocksize=0),
     ]
