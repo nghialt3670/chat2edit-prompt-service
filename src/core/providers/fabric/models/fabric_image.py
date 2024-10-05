@@ -25,9 +25,10 @@ class FabricImage(FabricObject):
 
     def apply_filter(self, filt: FabricFilter) -> None:
         if isinstance(filt, AdjustableFilter):
-            idx = self.filters.index(filt)
-            curr_filter = self.filters[idx]
-            curr_filter.merge(filt)
+            for curr_filt in self.filters:
+                if curr_filt.type == filt.type:
+                    curr_filt.merge(filt)
+                    break
         else:
             self.filters.append(filt)
 
