@@ -3,7 +3,6 @@ from models.phase import ChatPhase, Execution, Message, PromptPhase
 
 
 def create_fabric_exemplars():
-
     FABRIC_VI_EXEMPLARS = [
         ChatPhase(
             request=Message(

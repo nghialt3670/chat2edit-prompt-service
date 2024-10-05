@@ -2,7 +2,6 @@ from copy import deepcopy
 from typing import List, Literal
 
 from core.providers.fabric.models.fabric_canvas import FabricCanvas
-from core.providers.fabric.models.fabric_image import FabricImage
 from core.providers.fabric.models.fabric_object import FabricObject
 from core.providers.fabric.tools.helpers import get_object_idxs
 from core.providers.fabric.tools.inpaint_objects import inpaint_objects

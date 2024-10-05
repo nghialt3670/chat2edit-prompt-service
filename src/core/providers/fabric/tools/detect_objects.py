@@ -1,48 +1,63 @@
+import io
+import zipfile
 from typing import List
 
 import aiohttp
 import PIL.Image
+from PIL.Image import Image
 
 from core.providers.fabric.models import FabricImage
 from core.providers.fabric.models.fabric_canvas import FabricCanvas
+from utils.convert import image_to_buffer, image_to_data_url
 from utils.env import ENV
-from utils.convert import base64_to_image, image_to_base64
 
 API_URL = ENV.ML_SERVICE_API_BASE_URL
 API_VERSION = ENV.ML_SERVICE_API_VERSION
-GROUNDED_SAM_ENDPOINT = f"{API_URL}/api/v{API_VERSION}/predict/grounded-sam"
+GROUNDED_SAM_ENDPOINT = f"{API_URL}/api/v{API_VERSION}/grounded-sam"
 
 
 async def detect_objects(canvas: FabricCanvas, prompt: str) -> List[FabricImage]:
-    request_data = {
-        "image": {"src": canvas.backgroundImage.src, "src_type": "data_url"},
-        "prompt": prompt,
-    }
+    image = canvas.backgroundImage.to_image()
+    buffer = image_to_buffer(image)
+
+    form_data = aiohttp.FormData()
+    form_data.add_field("image", buffer)
+    form_data.add_field("prompt", prompt)
 
     async with aiohttp.ClientSession() as session:
-        async with session.post(GROUNDED_SAM_ENDPOINT, json=request_data) as response:
+        async with session.post(GROUNDED_SAM_ENDPOINT, data=form_data) as response:
             if response.status != 200:
                 raise Exception(f"Failed to request object-detection model")
-            response_dict = await response.json()
-            masks, scores = response_dict["masks"], response_dict["scores"]
 
-    base_image = canvas.backgroundImage.to_image()
-    objects = []
-    for i in range(len(masks)):
-        mask_base64 = masks[i]["base64"]
-        xmin, ymin = masks[i]["offset"]
-        score = scores[i]
-        mask_image = base64_to_image(mask_base64)
-        mask_size = mask_image.size
-        mask_box = xmin, ymin, xmin + mask_size[0], ymin + mask_size[1]
-        obj_image = PIL.Image.new("RGBA", mask_size)
-        obj_image.paste(base_image.crop(mask_box), mask=mask_image)
-        obj_base64 = image_to_base64(obj_image)
-        data_url = f"data:image/png;base64,{obj_base64}"
+            scores: List[float] = []
+            masks: List[Image] = []
+            zip_bytes = await response.read()
+
+            with zipfile.ZipFile(io.BytesIO(zip_bytes)) as z:
+                for file_info in z.infolist():
+                    score = float(file_info.filename.split(".")[0])
+                    scores.append(score)
+                    with z.open(file_info) as file:
+                        mask = Image.open(file)
+                        masks.append(mask)
+
+    detected_objects = []
+
+    for score, mask in zip(scores, masks):
+        obj_box = mask.getbbox()
+        obj_mask = mask.crop(obj_box)
+        obj_image = PIL.Image.new("RGBA", obj_mask.size)
+        obj_image.paste(image.crop(obj_box), mask=obj_mask)
+        data_url = image_to_data_url(obj_image)
         obj = FabricImage(
-            src=data_url, label_to_score={prompt: score}, left=xmin, top=ymin
+            src=data_url,
+            left=obj_box[0],
+            top=obj_box[1],
+            width=obj_image.width,
+            height=obj_image.height,
+            label_to_score={prompt: score},
         )
-        objects.append(obj)
+        canvas.objects.append(obj)
+        detected_objects.append(obj)
 
-    canvas.objects.extend(objects)
-    return objects
+    return detected_objects

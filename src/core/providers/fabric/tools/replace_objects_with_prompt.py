@@ -1,56 +1,53 @@
+import io
 import os
 from copy import deepcopy
 from typing import List
 
 import aiohttp
+import PIL
+import PIL.Image
 
 from core.providers.fabric.models.fabric_canvas import FabricCanvas
+from core.providers.fabric.models.fabric_image import FabricImage
 from core.providers.fabric.models.fabric_object import FabricObject
-from utils.convert import image_to_base64, image_to_mask
+from utils.convert import image_to_base64, image_to_buffer, image_to_mask
+from utils.env import ENV
 
-ML_SERVICE_BASE_URL = os.getenv("ML_SERVICE_BASE_URL")
-ML_SERVICE_API_VERSION = os.getenv("ML_SERVICE_API_VERSION")
-STABLE_DIFFUSION_INPAINT_ENDPOINT = f"{ML_SERVICE_BASE_URL}/api/v{ML_SERVICE_API_VERSION}/predict/stable-diffusion-inpaint"
+API_BASE_URL = ENV.ML_SERVICE_API_BASE_URL
+API_VERSION = ENV.ML_SERVICE_API_VERSION
+SD_INPAINT_ENDPOINT = f"{API_BASE_URL}/api/v{API_VERSION}/sd-inpaint"
 
 
 async def replace_objects_with_prompt(
     canvas: FabricCanvas, objects: List[FabricObject], prompt: str
 ) -> FabricCanvas:
-    base_image = canvas.backgroundImage
+    canvas = deepcopy(canvas)
 
-    if not base_image.is_size_initialized():
-        await base_image.init_size()
+    image = canvas.backgroundImage.to_image()
+    mask = PIL.Image.new("L", image.size)
 
-    request_masks = []
     for obj in objects:
         obj_image = await obj.to_image()
         obj_mask = image_to_mask(obj_image)
-        request_mask = {
-            "base64": image_to_base64(obj_mask),
-            "original_size": (base_image.width, base_image.height),
-            "offset": (obj.left, obj.top),
-        }
-        request_masks.append(request_mask)
+        mask.paste(obj_mask, mask=obj_mask)
 
-    request_data = {
-        "image": {
-            "src": base_image.src,
-        },
-        "masks": request_masks,
-        "prompt": prompt,
-    }
+    image_buffer = image_to_buffer(image)
+    mask_buffer = image_to_buffer(mask)
+
+    form_data = aiohttp.FormData()
+    form_data.add_field("image", image_buffer)
+    form_data.add_field("mask", mask_buffer)
+    form_data.add_field("prompt", prompt)
 
     async with aiohttp.ClientSession() as session:
-        async with session.post(
-            STABLE_DIFFUSION_INPAINT_ENDPOINT, json=request_data
-        ) as response:
+        async with session.post(SD_INPAINT_ENDPOINT, data=form_data) as response:
             if response.status != 200:
-                raise Exception(f"Failed to request stable-diffusion model")
-            response_dict = await response.json()
+                raise Exception(f"Failed to request stable-diffusion-inpaint model")
+
+            response_buffer = await response.read()
+            inpainted_image = PIL.Image.open(io.BytesIO(response_buffer))
 
     for obj in objects:
-        obj.inpainted = True
+        canvas.objects.remove(obj)
 
-    base64 = response_dict["image"]["src"]
-    data_url = f"data:image/png;base64,{base64}"
-    base_image.src = data_url
+    canvas.backgroundImage.set_image(inpainted_image)

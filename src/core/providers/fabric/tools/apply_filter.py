@@ -2,6 +2,15 @@ from copy import deepcopy
 from typing import List, Literal, Optional
 
 from core.providers.fabric.models.fabric_canvas import FabricCanvas
+from core.providers.fabric.models.fabric_filter import (
+    BlurFilter,
+    BrightnessFilter,
+    ContrastFilter,
+    GrayscaleFilter,
+    InvertFilter,
+    NoiseFilter,
+    PixelateFilter,
+)
 from core.providers.fabric.models.fabric_image import FabricImage
 from core.providers.fabric.tools.helpers import get_object_idxs
 
@@ -14,37 +23,38 @@ def apply_filter(
     filter_value: Optional[float] = None,
     objects: Optional[List[FabricImage]] = None,
 ) -> FabricCanvas:
-    print(canvas)
     filt = None
+
     if filter_value:
         filter_value -= 1
     if filter_name == "Grayscale":
-        filt = {"type": "Grayscale", "mode": "average"}
+        filt = GrayscaleFilter()
     elif filter_name == "Invert":
-        filt = {"type": "Invert"}
+        filt = InvertFilter()
     elif filter_name == "Brightness":
-        filt = {"type": "Brightness", "brightness": filter_value}
+        filt = BrightnessFilter(brightness=filter_value)
     elif filter_name == "Blur":
-        filt = {"type": "Blur", "blur": filter_value}
+        filt = BlurFilter(blur=filter_value)
     elif filter_name == "Contrast":
-        filt = {"type": "Contrast", "contrast": filter_value}
+        filt = ContrastFilter(contrast=filter_value)
     elif filter_name == "Noise":
-        filt = {"type": "Noise", "noise": filter_value}
+        filt = NoiseFilter(noise=filter_value)
     elif filter_name == "Pixelate":
-        filt = {"type": "Pixelate", "blocksize": filter_value * 10}
+        filt = PixelateFilter(blocksize=filter_value * 10)
     else:
-        raise ValueError()
+        raise ValueError(f"Invalid filter name: {filter_name}")
 
     if objects:
         object_idxs = get_object_idxs(canvas, objects)
         for i in object_idxs:
             obj = canvas.objects[i]
-            obj.filters.append(filt)
+            if isinstance(obj, FabricImage):
+                obj.apply_filter(filt)
     else:
         canvas = deepcopy(canvas)
-        canvas.backgroundImage.filters.append(filt)
+        canvas.backgroundImage.apply_filter(filt)
         for obj in canvas.objects:
             if isinstance(obj, FabricImage):
-                obj.filters.append(filt)
+                obj.apply_filter(filt)
 
     return canvas

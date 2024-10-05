@@ -1,26 +1,21 @@
-from typing import List, Literal
+from typing import Literal
+
+from pydantic import Field
 
 from core.providers.fabric.models.fabric_object import FabricObject
 
 
 class FabricTextbox(FabricObject):
-    type: Literal["Textbox"] = "Textbox"
-    fontSize: int = 40
-    fontWeight: str = "normal"
-    fontFamily: str = "Times New Roman"
-    fontStyle: str = "normal"
-    lineHeight: float = 1.16
+    type: Literal["Textbox"] = Field(default="Textbox")
+    fontSize: int = Field(default=40)
+    fontWeight: str = Field(default="normal")
+    fontFamily: str = Field(default="Times New Roman")
+    fontStyle: str = Field(default="normal")
+    lineHeight: float = Field(default=1.16)
+    charSpacing: int = Field(default=0)
+    textAlign: str = Field(default="left")
+    underline: bool = Field(default=False)
+    overline: bool = Field(default=False)
+    linethrough: bool = Field(default=False)
+    textBackgroundColor: str = Field(default="")
     text: str
-    charSpacing: int = 0
-    textAlign: str = "left"
-    styles: List = []
-    pathStartOffset: int = 0
-    pathSide: str = "left"
-    pathAlign: str = "baseline"
-    underline: bool = False
-    overline: bool = False
-    linethrough: bool = False
-    textBackgroundColor: str = ""
-    direction: str = "ltr"
-    minWidth: int = 20
-    splitByGrapheme: bool = False

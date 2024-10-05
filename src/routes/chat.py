@@ -6,8 +6,8 @@ from beanie import PydanticObjectId
 from fastapi import APIRouter, HTTPException, Response
 
 from models.chat import Chat, Context
-from src.lib.fs import get_bucket
 from schemas.chat_create_request import ChatCreateRequest
+from src.lib.fs import get_bucket
 
 router = APIRouter(prefix="/chats")
 

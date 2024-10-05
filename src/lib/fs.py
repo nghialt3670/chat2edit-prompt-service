@@ -3,7 +3,6 @@ from pymongo import MongoClient
 
 from src.utils.env import ENV
 
-
 client = MongoClient(ENV.MONGO_URI)
 
 

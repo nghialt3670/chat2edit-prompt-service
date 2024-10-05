@@ -5,18 +5,20 @@ from typing import List, Optional
 from uuid import uuid4
 
 from beanie import PydanticObjectId, WriteRules
-from fastapi import APIRouter, File as FormFile, Form, HTTPException, Query, UploadFile
+from fastapi import APIRouter
+from fastapi import File as FormFile
+from fastapi import Form, HTTPException, Query, UploadFile
 from fastapi.responses import StreamingResponse
 
 from core.controller.generate import generate
-from schemas.provider import Provider
 from deps.llms import get_llm
 from deps.providers import get_provider
+from lib.fs import get_bucket
 from models.chat import Chat
 from models.phase import Message
-from schemas.language import Language
 from schemas.file import File
-from lib.fs import get_bucket
+from schemas.language import Language
+from schemas.provider import Provider
 
 router = APIRouter(prefix="/phases")
 
@@ -35,8 +37,15 @@ async def prompt(
 ):
     try:
         files = files or []
-        files = [File(buffer=await file.read(), name=file.filename, content_type=file.content_type) for file in files]
-        
+        files = [
+            File(
+                buffer=await file.read(),
+                name=file.filename,
+                content_type=file.content_type,
+            )
+            for file in files
+        ]
+
         chat = await Chat.get(chat_id, fetch_links=True)
         if not chat:
             raise HTTPException(404)

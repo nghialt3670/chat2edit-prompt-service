@@ -41,7 +41,6 @@ from core.providers.provider import Provider
 from schemas.file import File
 from schemas.language import Language
 
-
 Image = TypeVar("Image", FabricCanvas, FabricImage, None)
 Object = TypeVar("Object", FabricImage, None)
 Text = TypeVar("Text", FabricTextbox, None)
@@ -52,7 +51,6 @@ CONTEXT_ALLOWED_TYPES = Union[
     float,
     bool,
     list,
-    dict,
     tuple,
     FabricCanvas,
     FabricGroup,
@@ -66,7 +64,6 @@ CONTEXT_ALLOWED_TYPES_SET = {
     float,
     bool,
     list,
-    dict,
     tuple,
     FabricCanvas,
     FabricGroup,
@@ -102,10 +99,10 @@ class FabricProvider(Provider):
         return [getattr(self, name) for name in self._function_names]
 
     def get_exemplars(self) -> str:
-        if self._language == "en":
-            return self._exemplars[1]
         if self._language == "vi":
             return self._exemplars[0]
+        if self._language == "en":
+            return self._exemplars[1]
 
         raise ValueError(f"Language {self._language} is not supported")
 
@@ -122,8 +119,8 @@ class FabricProvider(Provider):
     def encode_context(self, context: Dict[str, Any]) -> bytes:
         return self._context_adaptor.dump_json(context)
 
-    def decode_context(self, data: bytes) -> Dict[str, Any]:
-        return self._context_adaptor.validate_json(data)
+    def decode_context(self, buffer: bytes) -> Dict[str, Any]:
+        return self._context_adaptor.validate_json(buffer)
 
     def convert_file_to_objects(self, file: File) -> Any:
         if file.content_type.startswith("image/"):
@@ -132,16 +129,16 @@ class FabricProvider(Provider):
             image = FabricImage(src=data_url, filename=file.name)
             return [FabricCanvas(backgroundImage=image)]
 
-        elif file.name.endswith(".fabric"):
+        elif file.name.endswith(".fcanvas"):
             canvas = FabricCanvas.model_validate_json(file.buffer)
             objects = [canvas]
-            boxes = [
-                obj.get_box()
+            prompt_rects = [
+                obj
                 for obj in canvas.objects
-                if obj.is_prompt and isinstance(obj, FabricRect)
+                if isinstance(obj, FabricRect) and obj.is_prompt
             ]
-            objects.extend(boxes)
-            [canvas.objects.remove(box) for box in boxes]
+            [canvas.objects.remove(rect) for rect in prompt_rects]
+            objects.extend([rect.get_box() for rect in prompt_rects])
             return objects
 
         raise NotImplementedError(
@@ -150,24 +147,22 @@ class FabricProvider(Provider):
 
     def convert_object_to_file(self, obj: Any) -> File:
         if isinstance(obj, FabricCanvas):
-            file_bytes = obj.model_dump_json().encode()
-            filename = obj.backgroundImage.filename + ".fabric"
+            buffer = obj.model_dump_json().encode()
+            filename = obj.backgroundImage.filename + ".fcanvas"
             return File(
-                buffer=file_bytes,
+                buffer=buffer,
                 name=filename,
                 content_type="application/json",
             )
 
         elif isinstance(obj, FabricImage):
-            image = obj.to_image()
-            image_buffer = io.BytesIO()
-            image.save(image_buffer, format="PNG")
-            image_bytes = image_buffer.getvalue()
-            filename = obj.filename or f"{uuid4()}.png"
+            canvas = FabricCanvas(backgroundImage=obj)
+            buffer = canvas.model_dump_json().encode()
+            filename = (obj.filename or f"{uuid4()}.png") + ".fcanvas"
             return File(
-                buffer=image_bytes,
+                buffer=buffer,
                 name=filename,
-                content_type="image/png",
+                content_type="application/json",
             )
 
         raise ValueError(f"Unspported object type for converting to file: {type(obj)}")
@@ -204,8 +199,8 @@ class FabricProvider(Provider):
         self,
         image: Image,
         filter_name: str,
-        filter_value: Optional[float] = None,
-        targets: Optional[List[Object]] = None,
+        filter_value: float = None,
+        targets: List[Object] = None,
     ) -> Image:
         filter_name = filter_name.lower()
         if filter_name not in FILTER_NAME_MAPPINGS:
@@ -220,7 +215,7 @@ class FabricProvider(Provider):
         self,
         image: Image,
         angle: int,
-        targets: Optional[List[Union[Image, Object, Text]]] = None,
+        targets: List[Union[Image, Object, Text]] = None,
     ) -> Image:
         if targets:
             return await rotate_objects(image, targets, angle)
@@ -232,7 +227,7 @@ class FabricProvider(Provider):
         self,
         image: Image,
         axis: Literal["x", "y"],
-        targets: Optional[List[Union[Image, Object, Text]]] = None,
+        targets: List[Union[Image, Object, Text]] = None,
     ) -> Image:
         if targets:
             return await flip_objects(image, targets, axis)
@@ -261,8 +256,8 @@ class FabricProvider(Provider):
         self,
         image: Image,
         factor: float,
-        targets: Optional[List[Union[Image, Object, Text]]],
-        axis: Optional[Literal["x", "y"]] = None,
+        targets: List[Union[Image, Object, Text]],
+        axis: Literal["x", "y"] = None,
     ) -> Image:
         return await scale_objects(image, targets, factor, axis)
 
@@ -323,7 +318,4 @@ class FabricProvider(Provider):
         return target.left, target.top
 
     def get_size(self, target: Union[Image, Object, Text]) -> Tuple[int, int]:
-        if isinstance(target, FabricImage) and not target.is_size_initialized():
-            target.init_size()
-
         return target.width, target.height

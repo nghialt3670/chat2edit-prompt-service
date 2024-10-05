@@ -15,3 +15,6 @@ class Context(BaseModel):
 class Chat(Document):
     context: Context = Field(...)
     phases: List[Link["ChatPhase"]] = Field(default_factory=list)
+    
+    class Settings:
+        name = "prompting-chats"

@@ -1,9 +1,12 @@
 from typing import Literal
 
+from pydantic import Field
+
 from core.providers.fabric.models.fabric_object import FabricObject
 
 
 class FabricRect(FabricObject):
-    rx: int = 0
-    ry: int = 0
-    type: Literal["Rect"] = "Rect"
+    type: Literal["Rect"] = Field(default="Rect")
+    rx: int = Field(default=0)
+    ry: int = Field(default=0)
+    is_prompt: bool = Field(default=False)

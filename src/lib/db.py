@@ -1,9 +1,9 @@
 from beanie import init_beanie
 from motor.motor_asyncio import AsyncIOMotorClient
 
-from utils.env import ENV
 from models.chat import Chat
 from models.phase import ChatPhase
+from utils.env import ENV
 
 client = AsyncIOMotorClient(ENV.MONGO_URI)
 db = client.get_database()
