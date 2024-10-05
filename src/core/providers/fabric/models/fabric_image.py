@@ -4,11 +4,7 @@ import PIL.Image
 from PIL.Image import Image
 from pydantic import Field
 
-from core.providers.fabric.models.fabric_filter import (
-    AdjustableFilter,
-    FabricFilter,
-    create_default_filters,
-)
+from core.providers.fabric.models.fabric_filter import AdjustableFilter, FabricFilter
 from core.providers.fabric.models.fabric_object import FabricObject
 from utils.convert import data_url_to_image, image_to_base64
 
@@ -29,7 +25,7 @@ class FabricImage(FabricObject):
                 if curr_filt.type == filt.type:
                     curr_filt.merge(filt)
                     return
-                
+
             self.filters.append(filt)
         else:
             self.filters.append(filt)

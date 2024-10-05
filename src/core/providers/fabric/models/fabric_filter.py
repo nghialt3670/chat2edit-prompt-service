@@ -70,4 +70,3 @@ FabricFilter = Union[
     NoiseFilter,
     PixelateFilter,
 ]
-

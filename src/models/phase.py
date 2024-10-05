@@ -31,6 +31,6 @@ class ChatPhase(Document):
     request: Message = Field(...)
     prompt_phases: List[PromptPhase] = Field(default_factory=list)
     response: Optional[Message] = Field(default=None)
-    
+
     class Settings:
         name = "chat-phases"
