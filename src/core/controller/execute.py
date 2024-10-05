@@ -33,8 +33,8 @@ async def execute(
     for cmd in commands:
         start = time.time()
         try:
-            cmd = preprocess_command(cmd, context_dict)
-            function = create_wrapper_function(WRAPPER_FUNCTION_TEMPLATE, cmd)
+            processed_cmd = preprocess_command(cmd, context_dict)
+            function = create_wrapper_function(WRAPPER_FUNCTION_TEMPLATE, processed_cmd)
             await function(context_dict)
 
         except Exception as e:
