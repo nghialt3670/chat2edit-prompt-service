@@ -14,6 +14,7 @@ def apply_filter(
     filter_value: Optional[float] = None,
     objects: Optional[List[FabricImage]] = None,
 ) -> FabricCanvas:
+    print(canvas)
     filt = None
     if filter_value:
         filter_value -= 1

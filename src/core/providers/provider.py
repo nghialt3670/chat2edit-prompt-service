@@ -17,7 +17,6 @@ class Provider(ABC):
         self._execution: Execution = None
         self._context: Context = None
         self._context_dict: Dict[str, Any] = None
-        self._id_to_varname: Dict[str, str] = {}
 
     @abstractmethod
     def get_functions(self) -> List[Callable]:
@@ -105,7 +104,6 @@ class Provider(ABC):
 
     def add_to_context(self, key: str, value: Any) -> None:
         self._context_dict[key] = value
-        self._id_to_varname[id(value)] = key
 
     def feedback(
         self, type: Literal["info", "warning", "error"], text: str, varnames: List[str]
@@ -115,10 +113,12 @@ class Provider(ABC):
         )
 
     def get_varname(self, value: Any) -> None:
-        return self._id_to_varname[id(value)]
+        id_to_varname = {id(v): k for k, v in self._context_dict.items()}
+        return id_to_varname[id(value)]
 
     def response_user(self, text: str, attachments: List[Any] = []) -> None:
-        varnames = [self.get_varname(att) for att in attachments]
+        id_to_varname = {id(v): k for k, v in self._context_dict.items()}
+        varnames = [id_to_varname[id(att)] for att in attachments]
         self._execution.response = Message(
             src="llm", type="response", text=text, varnames=varnames
         )

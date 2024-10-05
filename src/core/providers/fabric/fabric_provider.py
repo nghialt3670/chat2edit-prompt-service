@@ -214,7 +214,7 @@ class FabricProvider(Provider):
             return image
 
         filter_name = FILTER_NAME_MAPPINGS[filter_name]
-        return apply_filter(image, filter_value, targets)
+        return apply_filter(image, filter_name, filter_value, targets)
 
     async def rotate(
         self,
