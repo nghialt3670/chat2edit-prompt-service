@@ -150,7 +150,7 @@ def create_fabric_exemplars():
                     ],
                     execution=Execution(
                         commands=[
-                            'response_user(text="There are 2 dogs in the image, which one would you like to remove?", attachments=[annotated_image])'
+                            'response_user(text="There are 2 dogs in the image, which one would you like to remove?", attachments=[annotated_image0])'
                         ],
                         response=Message(
                             src="llm",
