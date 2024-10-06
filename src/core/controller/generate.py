@@ -30,6 +30,7 @@ async def generate(
             exemplars=provider.get_exemplars(),
             phases=phases + [new_phase],
         )
+        prompt_phase.requests.append(prompt)
         prompt_messages = [prompt]
         commands = None
 
@@ -48,6 +49,7 @@ async def generate(
                 _, commands = extract_thinking_commands(prompt_phase.responses[-1])
             except Exception:
                 prompt_phase.tracebacks.append(traceback.format_exc())
+                prompt_phase.requests.append(HELPER_PROMPT)
                 prompt_messages.append(HELPER_PROMPT)
 
         if not commands:

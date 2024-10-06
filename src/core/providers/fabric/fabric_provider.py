@@ -165,6 +165,10 @@ class FabricProvider(Provider):
         raise ValueError(f"Unspported object type for converting to file: {type(obj)}")
 
     async def detect(self, image: Image, prompt: str) -> List[Object]:
+        if not isinstance(image, FabricCanvas):
+            self.feedback("error", "Parameter")
+        
+        
         objects = await detect_objects(image, prompt)
         image_varname = self.get_varname(image)
         n_objects = len(objects)

@@ -14,16 +14,17 @@ class Message(BaseModel):
 
 class Execution(BaseModel):
     commands: List[str] = Field(default_factory=list)
-    durations: Optional[List[float]] = Field(default_factory=list)
+    durations: List[float] = Field(default_factory=list)
     traceback: Optional[str] = Field(default=None)
     feedback: Optional[Message] = Field(default=None)
     response: Optional[Message] = Field(default=None)
 
 
 class PromptPhase(BaseModel):
-    responses: Optional[List[str]] = Field(default_factory=list)
-    durations: Optional[List[float]] = Field(default_factory=list)
-    tracebacks: Optional[List[str]] = Field(default_factory=list)
+    requests: List[str] = Field(default_factory=list)
+    responses: List[str] = Field(default_factory=list)
+    durations: List[float] = Field(default_factory=list)
+    tracebacks: List[str] = Field(default_factory=list)
     execution: Optional[Execution] = Field(default=None)
 
 
