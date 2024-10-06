@@ -82,6 +82,8 @@ FILTER_NAME_MAPPINGS = {
     "noise": "Noise",
     "pixelate": "Pixelate",
     "pixel": "Pixelate",
+    "saturation": "Saturation",
+    "saturate": "Saturation"
 }
 
 

@@ -59,6 +59,14 @@ class PixelateFilter(BaseModel, AdjustableFilter):
 
     def merge(self, filt: "PixelateFilter") -> None:
         self.blocksize += filt.blocksize
+        
+
+class SaturationFilter(BaseModel, AdjustableFilter):
+    type: Literal["Saturation"] = Field(default="Saturation")
+    saturation: float = Field(...)
+
+    def merge(self, filt: "SaturationFilter") -> None:
+        self.saturation += filt.saturation
 
 
 FabricFilter = Union[
@@ -69,4 +77,5 @@ FabricFilter = Union[
     ContrastFilter,
     NoiseFilter,
     PixelateFilter,
+    SaturationFilter
 ]

@@ -10,6 +10,7 @@ from core.providers.fabric.models.fabric_filter import (
     InvertFilter,
     NoiseFilter,
     PixelateFilter,
+    SaturationFilter,
 )
 from core.providers.fabric.models.fabric_image import FabricImage
 from core.providers.fabric.tools.helpers import get_object_idxs
@@ -18,7 +19,7 @@ from core.providers.fabric.tools.helpers import get_object_idxs
 def apply_filter(
     canvas: FabricCanvas,
     filter_name: Literal[
-        "Grayscale", "Invert", "Brightness", "Blur", "Contrast", "Noise", "Pixelate"
+        "Grayscale", "Invert", "Brightness", "Blur", "Contrast", "Noise", "Pixelate", "Saturation"
     ],
     filter_value: Optional[float] = None,
     objects: Optional[List[FabricImage]] = None,
@@ -41,6 +42,8 @@ def apply_filter(
         filt = NoiseFilter(noise=filter_value)
     elif filter_name == "Pixelate":
         filt = PixelateFilter(blocksize=filter_value * 10)
+    elif filter_name == "Saturation":
+        filt = SaturationFilter(saturation=filter_value)
     else:
         raise ValueError(f"Invalid filter name: {filter_name}")
 
