@@ -106,7 +106,7 @@ class Provider(ABC):
         self._context_dict[key] = value
 
     def feedback(
-        self, type: Literal["info", "warning", "error"], text: str, varnames: List[str]
+        self, type: Literal["info", "warning", "error"], text: str, varnames: List[str] = []
     ) -> None:
         self._execution.feedback = Message(
             src="system", type=type, text=text, varnames=varnames
