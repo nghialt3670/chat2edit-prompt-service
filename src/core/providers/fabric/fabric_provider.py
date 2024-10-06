@@ -191,9 +191,7 @@ class FabricProvider(Provider):
         return await remove_objects(image, targets)
 
     async def replace(self, image: Image, targets: List[Object], prompt: str) -> Image:
-        image = await remove_objects(image, targets)
-        await replace_objects_with_prompt(image, targets, prompt)
-        return image
+        return await replace_objects_with_prompt(image, targets, prompt)
 
     def filter(
         self,

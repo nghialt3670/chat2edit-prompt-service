@@ -52,3 +52,5 @@ async def replace_objects_with_prompt(
         canvas.objects.remove(obj)
 
     canvas.backgroundImage.set_image(inpainted_image)
+
+    return canvas
