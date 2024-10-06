@@ -18,17 +18,22 @@ LAMA_ENDPOINT = f"{API_BASE_URL}/api/v{API_VERSION}/lama"
 async def inpaint_objects(canvas: FabricCanvas, object_idxs: List[int]) -> None:
     image = canvas.backgroundImage.to_image()
     mask = PIL.Image.new("L", image.size)
+    inpaint = False
 
     for i in object_idxs:
         obj = canvas.objects[i]
 
         if not isinstance(obj, FabricImage) or not obj.label_to_score or obj.inpainted:
             continue
-
-        obj_image = await obj.to_image()
+        
+        inpaint = True
+        obj_image = obj.to_image()
         obj_mask = image_to_mask(obj_image)
-        mask.paste(obj_mask, mask=obj_mask)
+        mask.paste(obj_mask, obj.get_box(), obj_mask)
 
+    if not inpaint:
+        return
+    
     image_buffer = image_to_buffer(image)
     mask_buffer = image_to_buffer(mask)
 
@@ -43,6 +48,7 @@ async def inpaint_objects(canvas: FabricCanvas, object_idxs: List[int]) -> None:
 
             response_buffer = await response.read()
             inpainted_image = PIL.Image.open(io.BytesIO(response_buffer))
+            inpainted_image.load()
 
     for i in object_idxs:
         canvas.objects[i].inpainted = True

@@ -32,6 +32,7 @@ async def segment_object(
 
             response_buffer = await response.read()
             mask = PIL.Image.open(io.BytesIO(response_buffer))
+            mask.load()
 
     obj_box = mask.getbbox()
     obj_mask = mask.crop(obj_box)

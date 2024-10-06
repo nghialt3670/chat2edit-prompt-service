@@ -39,6 +39,7 @@ async def detect_objects(canvas: FabricCanvas, prompt: str) -> List[FabricImage]
                     scores.append(score)
                     with z.open(file_info) as file:
                         mask = PIL.Image.open(file)
+                        mask.load()
                         masks.append(mask)
 
     detected_objects = []

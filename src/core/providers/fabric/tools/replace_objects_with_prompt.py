@@ -27,9 +27,9 @@ async def replace_objects_with_prompt(
     mask = PIL.Image.new("L", image.size)
 
     for obj in objects:
-        obj_image = await obj.to_image()
+        obj_image = obj.to_image()
         obj_mask = image_to_mask(obj_image)
-        mask.paste(obj_mask, mask=obj_mask)
+        mask.paste(obj_mask, obj.get_box(), obj_mask)
 
     image_buffer = image_to_buffer(image)
     mask_buffer = image_to_buffer(mask)
@@ -46,6 +46,7 @@ async def replace_objects_with_prompt(
 
             response_buffer = await response.read()
             inpainted_image = PIL.Image.open(io.BytesIO(response_buffer))
+            inpainted_image.load()
 
     for obj in objects:
         canvas.objects.remove(obj)

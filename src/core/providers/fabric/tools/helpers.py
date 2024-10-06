@@ -1,4 +1,4 @@
-from typing import Iterable, List
+from typing import List
 
 from core.providers.fabric.models.fabric_canvas import FabricCanvas
 from core.providers.fabric.models.fabric_object import FabricObject
