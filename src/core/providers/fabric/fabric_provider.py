@@ -1,6 +1,7 @@
 import base64 as b64
 import io
 from copy import deepcopy
+import json
 from typing import (
     Any,
     Callable,
@@ -39,7 +40,6 @@ from core.providers.fabric.tools.segment_object import segment_object
 from core.providers.fabric.tools.shift_objects import shift_objects
 from core.providers.provider import Provider
 from schemas.file import File
-from schemas.language import Language
 
 Image = TypeVar("Image", FabricCanvas, FabricImage, None)
 Object = TypeVar("Object", FabricImage, None)
@@ -50,13 +50,13 @@ CONTEXT_ALLOWED_TYPES = Union[
     int,
     float,
     bool,
-    list,
-    tuple,
+    Tuple[int, int, int, int],
     FabricCanvas,
     FabricGroup,
     FabricImage,
     FabricTextbox,
     FabricRect,
+    List[FabricImage],
 ]
 CONTEXT_ALLOWED_TYPES_SET = {
     str,
@@ -169,16 +169,19 @@ class FabricProvider(Provider):
 
     async def detect(self, image: Image, prompt: str) -> List[Object]:
         objects = await detect_objects(image, prompt)
-        if len(objects) == 0:
-            self.feedback("warning", f"Detected 0 `{prompt}` in the image")
-        elif len(objects) == 1:
-            self.feedback("info", f"Detected 1 `{prompt}` in the image")
+        image_varname = self.get_varname(image)
+        n_objects = len(objects)
+        text = f"Detected {n_objects} `{prompt}` in `{image_varname}`"
+        
+        if n_objects == 0:
+            self.feedback("warning", text)
+        elif n_objects == 1:
+            self.feedback("info", text)
         else:
+            annotated_image_varname = f"annotated_{image_varname}"
             annotated_image = self._annotate_detections(image, objects)
-            varname = f"annotated_{self.get_varname(image)}"
-            self.add_to_context(varname, annotated_image)
-            text = f"Detected {len(objects)} `{prompt}` in `{varname}`"
-            self.feedback("warning", text, [varname])
+            self.add_to_context(annotated_image_varname, annotated_image)
+            self.feedback("warning", text, [annotated_image_varname])
 
         return objects
 
@@ -261,18 +264,12 @@ class FabricProvider(Provider):
     ) -> Image:
         return await scale_objects(image, targets, factor, axis)
 
-    async def _annotate_detections(
+    def _annotate_detections(
         self, canvas: FabricCanvas, objects: List[FabricImage]
     ) -> FabricCanvas:
         canvas = deepcopy(canvas)
 
-        if not canvas.backgroundImage.is_size_initialized():
-            canvas.backgroundImage.init_size()
-
         for idx, obj in enumerate(objects):
-            if not obj.is_size_initialized():
-                obj.init_size()
-
             obj_box = FabricRect(
                 left=obj.left,
                 top=obj.top,
