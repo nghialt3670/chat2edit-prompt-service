@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Literal, Union
+from typing import Literal, Union
 
 from pydantic import BaseModel, Field
 
@@ -59,7 +59,7 @@ class PixelateFilter(BaseModel, AdjustableFilter):
 
     def merge(self, filt: "PixelateFilter") -> None:
         self.blocksize += filt.blocksize
-        
+
 
 class SaturationFilter(BaseModel, AdjustableFilter):
     type: Literal["Saturation"] = Field(default="Saturation")
@@ -77,5 +77,5 @@ FabricFilter = Union[
     ContrastFilter,
     NoiseFilter,
     PixelateFilter,
-    SaturationFilter
+    SaturationFilter,
 ]

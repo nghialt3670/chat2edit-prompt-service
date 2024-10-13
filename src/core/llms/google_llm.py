@@ -39,28 +39,31 @@ class GoogleLLM(LLM):
         top_p: Optional[int] = None,
     ) -> None:
         genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
-        self.generation_config = GenerationConfig(
+        self._generation_config = GenerationConfig(
             stop_sequences=stop_words,
             max_output_tokens=max_out_tokens,
             temperature=temperature,
             top_k=top_k,
             top_p=top_p,
         )
-        self.model = genai.GenerativeModel(
+        self._model = genai.GenerativeModel(
             model_name=model_name,
-            generation_config=self.generation_config,
+            generation_config=self._generation_config,
             system_instruction=system_message,
         )
 
     async def __call__(self, messages: Iterable[str]) -> str:
         if len(messages) % 2 == 0:
             raise ValueError("Messages length must be odd")
+        
         history = [
             {"role": "user" if i % 2 == 0 else "model", "parts": message}
             for i, message in enumerate(messages[:-1])
         ]
-        chat = self.model.start_chat(history=history)
-        response = await chat.send_message_async(
+        
+        chat_session = self._model.start_chat(history=history)
+        response = await chat_session.send_message_async(
             messages[-1], safety_settings=SAFETY_SETTINGS
         )
+        
         return response.text

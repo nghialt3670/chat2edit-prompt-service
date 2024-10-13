@@ -5,7 +5,7 @@ from uuid import uuid4
 from beanie import PydanticObjectId
 from fastapi import APIRouter, HTTPException, Response
 
-from models.chat import Chat, Context
+from models.chat import Chat, ChatState
 from schemas.chat_create_request import ChatCreateRequest
 from src.lib.fs import get_bucket
 
@@ -15,12 +15,12 @@ router = APIRouter(prefix="/chats")
 @router.post("")
 async def create_chat(request: ChatCreateRequest):
     try:
-        buffer = json.dumps({}).encode()
         bucket = get_bucket("contexts")
-        file_id = bucket.upload_from_stream(f"{uuid4()}.json", buffer)
-        context = Context(file_id=file_id)
-
-        chat = Chat(id=PydanticObjectId(request.chat_id), context=context)
+        context_buffer = json.dumps({}).encode()
+        context_id = bucket.upload_from_stream(f"{uuid4()}.json", context_buffer)
+        state = ChatState(context_id=context_id)
+        
+        chat = Chat(id=PydanticObjectId(request.chat_id), state=state)
         await chat.save()
 
         return Response(status_code=201)

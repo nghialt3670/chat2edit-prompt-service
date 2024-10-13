@@ -26,31 +26,37 @@ async def generate(
         new_phase.prompt_phases.append(prompt_phase)
 
         prompt = create_prompt(
-            functions=provider.get_functions(),
+            functions=provider.get_prompt_functions(),
             exemplars=provider.get_exemplars(),
             phases=phases + [new_phase],
         )
-        prompt_phase.requests.append(prompt)
-        prompt_messages = [prompt]
+        
+        prompt_phase.prompts.append(prompt)
+        messages = [prompt]
         commands = None
 
-        while not commands and len(prompt_messages) < MAX_HELPS:
+        while not commands and len(messages) < MAX_HELPS:
             try:
                 start = time.time()
-                llm_response = await llm(prompt_messages)
-                prompt_messages.append(llm_response)
-                prompt_phase.responses.append(llm_response)
-                prompt_phase.durations.append(time.time() - start)
+                answer = await llm(messages)
+                end = time.time()
+                
+                duration = end - start
+                
+                prompt_phase.durations.append(duration)
+                prompt_phase.answers.append(answer)
+                
+                messages.append(answer)
             except Exception:
                 prompt_phase.tracebacks.append(traceback.format_exc())
                 break
 
             try:
-                _, commands = extract_thinking_commands(prompt_phase.responses[-1])
+                _, commands = extract_thinking_commands(prompt_phase.answers[-1])
             except Exception:
                 prompt_phase.tracebacks.append(traceback.format_exc())
-                prompt_phase.requests.append(HELPER_PROMPT)
-                prompt_messages.append(HELPER_PROMPT)
+                prompt_phase.prompts.append(HELPER_PROMPT)
+                messages.append(HELPER_PROMPT)
 
         if not commands:
             break

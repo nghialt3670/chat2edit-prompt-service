@@ -17,6 +17,8 @@ class FabricObject(BaseModel):
     flipY: bool = Field(default=False)
     opacity: float = Field(default=1.0)
     fill: str = Field(default="rgb(0,0,0)")
+    stroke: Optional[str] = Field(default=None)
+    strokeWidth: int = Field(default=0)
 
     def get_box(self) -> Tuple[int, int, int, int]:
         return (
@@ -25,6 +27,14 @@ class FabricObject(BaseModel):
             round(self.left + self.width),
             round(self.top + self.height),
         )
+
+    def move(self, destination: Tuple[int, int]) -> None:
+        self.left = destination[0]
+        self.top = destination[1]
+
+    def shift(self, offset: Tuple[int, int]) -> None:
+        self.left += offset[0]
+        self.top += offset[1]
 
     def rotate(self, angle: int) -> None:
         self.angle += angle
@@ -35,7 +45,18 @@ class FabricObject(BaseModel):
         elif axis == "y":
             self.flipY = not self.flipY
         else:
-            raise ValueError("Invalid argument for axis")
+            raise ValueError(f"Invalid argument for axis: {axis}")
+
+    def scale(self, factor: float, axis: Optional[Literal["x", "y"]] = None) -> None:
+        if axis == "x":
+            self.scaleX *= factor
+        elif axis == "y":
+            self.scaleY *= factor
+        elif axis is None:
+            self.scaleX *= factor
+            self.scaleY *= factor
+        else:
+            raise ValueError(f"Invalid argument for axis: {axis}")
 
     def __hash__(self) -> int:
         return hash(self.id)

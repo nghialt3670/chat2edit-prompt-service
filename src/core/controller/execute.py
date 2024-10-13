@@ -3,13 +3,17 @@ import inspect
 import textwrap
 import time
 import traceback
-from typing import Any, Coroutine, Dict, Iterable, Tuple
+from typing import Any, Callable, Coroutine, Dict, Iterable, Tuple
 
 from core.providers.provider import Provider
 from models.phase import Execution, Message
 
 DEFAULT_FEEDBACK = Message(
-    src="system", type="info", text="Commands executed successfully"
+    src="system", type="info", text="Commands executed successfully."
+)
+
+UNKNOWN_ERROR_FEEDBACK = Message(
+    src="system", type="error", text="Unknown error occurred!"
 )
 
 WRAPPER_FUNCTION_TEMPLATE = """
@@ -27,22 +31,31 @@ async def execute(
     provider: Provider,
 ) -> Execution:
     execution = Execution(feedback=DEFAULT_FEEDBACK)
-    provider.set_execution(execution)
-    context_dict = provider.get_context_dict()
+    context = provider.get_context()
 
     for cmd in commands:
         start = time.time()
-        try:
-            processed_cmd = preprocess_command(cmd, context_dict)
-            function = create_wrapper_function(WRAPPER_FUNCTION_TEMPLATE, processed_cmd)
-            await function(context_dict)
+        end = None
 
-        except Exception as e:
-            execution.feedback = Message(src="system", type="error", text=str(e))
+        try:
+            processed_cmd = preprocess_command(cmd, context)
+            function = create_wrapper_function(WRAPPER_FUNCTION_TEMPLATE, processed_cmd)
+
+            await function(context)
+
+            execution.feedback = provider.get_feedback() or DEFAULT_FEEDBACK
+            execution.response = provider.get_response()
+
+        except:
+            execution.feedback = UNKNOWN_ERROR_FEEDBACK
             execution.traceback = traceback.format_exc()
 
-        execution.durations.append(time.time() - start)
+        finally:
+            end = time.time()
+
+        duration = end - start
         execution.commands.append(cmd)
+        execution.durations.append(duration)
 
         if execution.feedback.type != "info" or execution.response:
             break
@@ -94,7 +107,7 @@ def preprocess_command(
 
 def create_wrapper_function(
     template: str, command: str, func_name: str = "__wrapper_func"
-) -> Coroutine:
+) -> Callable:
     local_vars = {}
     exec(
         template.format(command=textwrap.indent(command, "    ")),

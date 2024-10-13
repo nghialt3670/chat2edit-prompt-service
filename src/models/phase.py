@@ -1,7 +1,6 @@
 from typing import List, Literal, Optional
 
 from beanie import Document
-from bson import ObjectId
 from pydantic import BaseModel, Field
 
 
@@ -21,8 +20,8 @@ class Execution(BaseModel):
 
 
 class PromptPhase(BaseModel):
-    requests: List[str] = Field(default_factory=list)
-    responses: List[str] = Field(default_factory=list)
+    prompts: List[str] = Field(default_factory=list)
+    answers: List[str] = Field(default_factory=list)
     durations: List[float] = Field(default_factory=list)
     tracebacks: List[str] = Field(default_factory=list)
     execution: Optional[Execution] = Field(default=None)

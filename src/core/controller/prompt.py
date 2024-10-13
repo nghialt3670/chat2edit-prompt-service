@@ -19,12 +19,12 @@ Follow the examples to produce your next thinking and commands (give answer in p
 
 HELPER_PROMPT = """
 Please response in this format:
-thinking: <YOUR_THINKING>
-commands:
-<YOUR_COMMAND_0>
-<YOUR_COMMAND_1>
+THINKING: <YOUR_THINKING>
+COMMANDS:
+<COMMAND_0>
+<COMMAND_1>
 ...
-<YOUR_COMMAND_n>"""
+<COMMAND_n>"""
 
 
 def create_prompt(
@@ -58,13 +58,16 @@ def format_observation(message: Message) -> str:
 def format_phase(phase: ChatPhase) -> str:
     observation = format_observation(phase.request)
     result = f"OBSERVATION: {observation}\n"
+    
     for prompt_phase in phase.prompt_phases:
-        if not prompt_phase.responses:
+        if not prompt_phase.answers:
             break
-        thinking, _ = extract_thinking_commands(prompt_phase.responses[-1])
+        
+        thinking, _ = extract_thinking_commands(prompt_phase.answers[-1])
         commands = prompt_phase.execution.commands
         result += f"THINKING: {thinking}\n"
         result += "COMMANDS:\n" + "\n".join(commands) + "\n"
+        
         if feedback := prompt_phase.execution.feedback:
             observation = format_observation(feedback)
             result += f"OBSERVATION: {observation}\n"

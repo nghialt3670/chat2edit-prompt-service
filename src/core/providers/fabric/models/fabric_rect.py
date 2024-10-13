@@ -9,4 +9,4 @@ class FabricRect(FabricObject):
     type: Literal["Rect"] = Field(default="Rect")
     rx: int = Field(default=0)
     ry: int = Field(default=0)
-    is_prompt: bool = Field(default=False)
+    is_query: bool = Field(default=False)

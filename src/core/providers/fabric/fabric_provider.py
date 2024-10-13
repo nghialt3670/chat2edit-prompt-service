@@ -1,127 +1,80 @@
 import base64 as b64
 from copy import deepcopy
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Iterable,
-    List,
-    Literal,
-    Tuple,
-    TypeVar,
-    Union,
-)
+from typing import Any, List, Literal, Optional, Tuple, TypeVar, Union
 from uuid import uuid4
-
-from pydantic import TypeAdapter
 
 from core.providers.fabric.fabric_exemplars import create_fabric_exemplars
 from core.providers.fabric.models import (
     FabricCanvas,
+    FabricFilter,
     FabricImage,
     FabricRect,
     FabricTextbox,
 )
-from core.providers.fabric.models.fabric_group import FabricGroup
-from core.providers.fabric.tools.apply_filter import apply_filter
-from core.providers.fabric.tools.detect_objects import detect_objects
-from core.providers.fabric.tools.flip_objects import flip_objects
-from core.providers.fabric.tools.move_objects import move_objects
-from core.providers.fabric.tools.remove_objects import remove_objects
-from core.providers.fabric.tools.replace_objects_with_prompt import (
-    replace_objects_with_prompt,
+from core.providers.fabric.models.fabric_filter import (
+    BlurFilter,
+    BrightnessFilter,
+    ContrastFilter,
+    GrayscaleFilter,
+    InvertFilter,
+    NoiseFilter,
+    PixelateFilter,
+    SaturationFilter,
 )
-from core.providers.fabric.tools.rotate_objects import rotate_objects
-from core.providers.fabric.tools.scale_objects import scale_objects
-from core.providers.fabric.tools.segment_object import segment_object
-from core.providers.fabric.tools.shift_objects import shift_objects
-from core.providers.provider import Provider
+from core.providers.fabric.models.fabric_group import FabricGroup
+from core.providers.provider import Provider, prompt_function
+from models.phase import Message
 from schemas.file import File
 
-Image = TypeVar("Image", FabricCanvas, FabricImage, None)
-Object = TypeVar("Object", FabricImage, None)
-Text = TypeVar("Text", FabricTextbox, None)
+CompositeImage = TypeVar("CompositeImage", FabricCanvas, FabricImage, None)
+ImageObject = TypeVar("ImageObject", FabricImage, None)
+Textbox = TypeVar("Textbox", FabricTextbox, None)
+Box = TypeVar("Box", FabricRect, None)
 
-CONTEXT_ALLOWED_TYPES = Union[
-    str,
-    int,
-    float,
-    bool,
-    Tuple[int, int, int, int],
+FABRIC_CONTEXT_VALUE_TYPES = (
     FabricCanvas,
     FabricGroup,
     FabricImage,
     FabricTextbox,
     FabricRect,
     List[FabricImage],
-]
-CONTEXT_ALLOWED_TYPES_SET = {
     str,
     int,
     float,
     bool,
-    list,
-    tuple,
-    FabricCanvas,
-    FabricGroup,
-    FabricImage,
-    FabricTextbox,
-    FabricRect,
+)
+FABRIC_TYPE_TO_ALIAS = {FabricCanvas: "image", FabricRect: "box"}
+FABRIC_FILTER_NAME_TYPE = Literal[
+    "Grayscale",
+    "Invert",
+    "Brightness",
+    "Blur",
+    "Contrast",
+    "Noise",
+    "Pixelate",
+    "Saturation",
+]
+ADJUSTABLE_FILTER_NAME_SET = {
+    "Brightness",
+    "Blur",
+    "Contrast",
+    "Noise",
+    "Pixelate",
+    "Saturation",
 }
-FABRIC_TYPE_TO_ALIAS = {FabricCanvas: "image", tuple: "box"}
-FILTER_NAME_MAPPINGS = {
-    "grayscale": "Grayscale",
-    "gray": "Grayscale",
-    "invert": "Invert",
-    "negative": "Invert",
-    "brightness": "Brightness",
-    "bright": "Brightness",
-    "blur": "Blur",
-    "blurness": "Blur",
-    "contrast": "Contrast",
-    "noise": "Noise",
-    "pixelate": "Pixelate",
-    "pixel": "Pixelate",
-    "saturation": "Saturation",
-    "saturate": "Saturation"
-}
+FILTERABLE_OBJECT_TYPE = Union[CompositeImage, ImageObject]
+CANVAS_OBJECT_TYPE = Union[CompositeImage, ImageObject, Textbox]
 
 
 class FabricProvider(Provider):
-    def __init__(self, function_names: Iterable[str]) -> None:
-        super().__init__()
-        self._function_names = function_names
-        self._context_adaptor = TypeAdapter(Dict[str, CONTEXT_ALLOWED_TYPES])
-        self._exemplars = create_fabric_exemplars()
+    def __init__(self) -> None:
+        super().__init__(
+            lang_to_exemplars=create_fabric_exemplars(),
+            context_value_types=FABRIC_CONTEXT_VALUE_TYPES,
+            type_to_alias=FABRIC_TYPE_TO_ALIAS,
+        )
 
-    def get_functions(self) -> List[Callable]:
-        return [getattr(self, name) for name in self._function_names]
-
-    def get_exemplars(self) -> str:
-        if self._language == "vi":
-            return self._exemplars[0]
-        if self._language == "en":
-            return self._exemplars[1]
-
-        raise ValueError(f"Language {self._language} is not supported")
-
-    def get_alias(self, obj) -> str:
-        return FABRIC_TYPE_TO_ALIAS[type(obj)]
-
-    def filter_context(self, context: Dict[str, Any]) -> Dict[str, Any]:
-        is_allowed_value = lambda x: type(x) in CONTEXT_ALLOWED_TYPES_SET
-        for k in {k for k, v in context.items() if not is_allowed_value(v)}:
-            context.pop(k)
-
-        return context
-
-    def encode_context(self, context: Dict[str, Any]) -> bytes:
-        return self._context_adaptor.dump_json(context)
-
-    def decode_context(self, buffer: bytes) -> Dict[str, Any]:
-        return self._context_adaptor.validate_json(buffer)
-
-    def convert_file_to_objects(self, file: File) -> Any:
+    def convert_file_to_objects(self, file: File) -> List[Any]:
         if file.content_type.startswith("image/"):
             base64 = b64.b64encode(file.buffer).decode()
             data_url = f"data:{file.content_type};base64,{base64}"
@@ -130,19 +83,12 @@ class FabricProvider(Provider):
 
         elif file.name.endswith(".fcanvas"):
             canvas = FabricCanvas.model_validate_json(file.buffer)
-            objects = [canvas]
-            prompt_rects = [
-                obj
-                for obj in canvas.objects
-                if isinstance(obj, FabricRect) and obj.is_prompt
-            ]
-            [canvas.objects.remove(rect) for rect in prompt_rects]
-            objects.extend([rect.get_box() for rect in prompt_rects])
-            return objects
+            is_query_rect = lambda x: isinstance(x, FabricRect) and x.is_query
+            query_rects = [obj for obj in canvas.objects if is_query_rect(obj)]
+            [canvas.objects.remove(rect) for rect in query_rects]
+            return [canvas] + query_rects
 
-        raise NotImplementedError(
-            f"Unsupported file type for converting to obj: {file}"
-        )
+        raise NotImplementedError()
 
     def convert_object_to_file(self, obj: Any) -> File:
         if isinstance(obj, FabricCanvas):
@@ -164,111 +110,234 @@ class FabricProvider(Provider):
                 content_type="application/json",
             )
 
-        raise ValueError(f"Unspported object type for converting to file: {type(obj)}")
+        raise NotImplementedError()
 
-    async def detect(self, image: Image, prompt: str) -> List[Object]:
-        if not isinstance(image, FabricCanvas):
-            self.feedback("error", "Parameter")
-        
-        
-        objects = await detect_objects(image, prompt)
-        image_varname = self.get_varname(image)
+    @prompt_function(
+        index=0,
+        description="Segments image objects based on a short and concise prompt such as 'cat', 'dog', 'green house', etc.",
+    )
+    async def segment_image_objects_by_prompt(
+        self, image: CompositeImage, prompt: str
+    ) -> List[ImageObject]:
+        objects = await image.segment_image_objects_by_prompt(prompt)
+
         n_objects = len(objects)
-        text = f"Detected {n_objects} `{prompt}` in `{image_varname}`"
-        
+        image_varname = self.get_varname(image)
+        feedback_text = f"Segmented {n_objects} `{prompt}` in `{image_varname}`."
+
         if n_objects == 0:
-            self.feedback("warning", text)
+            self._set_feedback("warning", feedback_text)
         elif n_objects == 1:
-            self.feedback("info", text)
+            self._set_feedback("info", feedback_text)
         else:
             annotated_image_varname = f"annotated_{image_varname}"
             annotated_image = self._annotate_detections(image, objects)
             self.add_to_context(annotated_image_varname, annotated_image)
-            self.feedback("warning", text, [annotated_image_varname])
+            self._set_feedback("warning", feedback_text, [annotated_image_varname])
 
         return objects
 
-    async def segment(self, image: Image, box: Tuple[int, int, int, int]) -> Object:
-        return await segment_object(image, box)
-
-    async def remove(
-        self, image: Image, targets: List[Union[Image, Object, Text]]
-    ) -> Image:
-        return await remove_objects(image, targets)
-
-    async def replace(self, image: Image, targets: List[Object], prompt: str) -> Image:
-        return await replace_objects_with_prompt(image, targets, prompt)
-
-    def filter(
+    @prompt_function(
+        index=1,
+        description="Segments image objects within specified boxes in the given image.",
+    )
+    async def segment_image_objects_by_boxes(
         self,
-        image: Image,
-        filter_name: str,
-        filter_value: float = None,
-        targets: List[Object] = None,
-    ) -> Image:
-        filter_name = filter_name.lower()
-        if filter_name not in FILTER_NAME_MAPPINGS:
-            text = f"Available values for `filter_name` are: {FILTER_NAME_MAPPINGS.values()}"
-            self.feedback("error", text)
-            return image
+        image: CompositeImage,
+        boxes: List[Box],
+    ) -> List[ImageObject]:
+        tuple_boxes = [box.get_box() for box in boxes]
+        return await image.segment_image_objects_by_boxes(tuple_boxes)
 
-        filter_name = FILTER_NAME_MAPPINGS[filter_name]
-        return apply_filter(image, filter_name, filter_value, targets)
+    @prompt_function(
+        index=2,
+        description="Replaces image objects in the given image based on a detailed prompt that describes the object to replace.",
+    )
+    async def replace_image_objects_by_prompt(
+        self, image: CompositeImage, objects: List[ImageObject], prompt: str
+    ) -> CompositeImage:
+        copied_image = deepcopy(image)
+        await copied_image.inpaint_image_objects_by_prompt(objects, prompt)
+        return copied_image
 
-    async def rotate(
+    @prompt_function(
+        index=3,
+        description="Applies a specified filter to an image or, if provided, to its child elements.",
+    )
+    def apply_filter_to_image_or_children(
         self,
-        image: Image,
-        angle: int,
-        targets: List[Union[Image, Object, Text]] = None,
-    ) -> Image:
-        if targets:
-            return await rotate_objects(image, targets, angle)
+        image: CompositeImage,
+        filter_name: FABRIC_FILTER_NAME_TYPE,
+        filter_value: Optional[float] = None,
+        children: Optional[List[FILTERABLE_OBJECT_TYPE]] = None,
+    ) -> CompositeImage:
+        feedback_text = None
 
-        image.backgroundImage.rotate(angle)
-        return image
+        if filter_value:
+            if not filter_name in ADJUSTABLE_FILTER_NAME_SET:
+                feedback_text = f"In `apply_filter` function, parameter `filter_value`, if provided, cannot be used with the filter `{filter_name}` as it does not support value adjustments."
 
-    async def flip(
+            if filter_value < -1.0 or filter_value > 1.0:
+                feedback_text = "In `apply_filter` function, parameter `filter_value`, if provided, must be between -1.0 and 1.0."
+
+        elif filter_name in ADJUSTABLE_FILTER_NAME_SET:
+            feedback_text = f"In `apply_filter` function, parameter `filter_value` is required for the filter `{filter_name}` as it supports value adjustments."
+
+        if feedback_text:
+            self._set_feedback("error", feedback_text)
+            return None
+
+        filt = self._create_filter(filter_name, filter_value)
+        copied_image = deepcopy(image)
+        copied_image.apply_filter(filt, children)
+        return copied_image
+
+    @prompt_function(
+        index=4,
+        description="Rotates an image or, if provided, its child elements by a specified angle.",
+    )
+    async def rotate_image_or_children(
         self,
-        image: Image,
+        image: CompositeImage,
+        angle: float,
+        children: Optional[List[CANVAS_OBJECT_TYPE]] = None,
+    ) -> CompositeImage:
+        copied_image = deepcopy(image)
+
+        if children:
+            angles = [angle] * len(children)
+            await copied_image.rotate_objects(children, angles)
+        else:
+            copied_image.backgroundImage.rotate(angle)
+
+        return copied_image
+
+    @prompt_function(
+        index=5,
+        description="Flips an image or, if provided, its child elements along the specified axis (x or y).",
+    )
+    async def flip_image_or_children(
+        self,
+        image: CompositeImage,
         axis: Literal["x", "y"],
-        targets: List[Union[Image, Object, Text]] = None,
-    ) -> Image:
-        if targets:
-            return await flip_objects(image, targets, axis)
+        children: Optional[List[CANVAS_OBJECT_TYPE]] = None,
+    ) -> CompositeImage:
+        copied_image = deepcopy(image)
 
-        image.backgroundImage.flip(axis)
-        return image
+        if children:
+            axes = [axis] * len(children)
+            await copied_image.flip_objects(children, axes)
+        else:
+            copied_image.backgroundImage.flip(axis)
 
-    async def move(
+        return copied_image
+
+    @prompt_function(
+        index=6, description="Removes specified child elements from the image."
+    )
+    async def remove_children(
         self,
-        image: Image,
-        targets: List[Union[Image, Object, Text]],
-        dest: Tuple[int, int],
-    ) -> Image:
-        return await move_objects(image, targets, dest)
+        image: CompositeImage,
+        children: List[CANVAS_OBJECT_TYPE],
+    ) -> CompositeImage:
+        copied_image = deepcopy(image)
+        await copied_image.remove_objects(children)
+        return copied_image
 
-    async def shift(
+    @prompt_function(
+        index=7,
+        description="Moves specified child elements to new positions. The number of children must match the number of destinations",
+    )
+    async def move_children(
         self,
-        image: Image,
-        targets: List[Union[Image, Object, Text]],
-        offset: int,
-        axis: Literal["x", "y"],
-    ) -> Image:
-        return await shift_objects(image, targets, offset, axis)
+        image: CompositeImage,
+        children: List[CANVAS_OBJECT_TYPE],
+        destinations: List[Tuple[int, int]],
+    ) -> CompositeImage:
+        if len(children) != len(destinations):
+            feedback_text = (
+                f"In `move_children` function, the length of `children` ({len(children)}) "
+                f"does not match the length of `destinations` ({len(destinations)}). "
+                "Each child must have a corresponding destination."
+            )
+            self._set_feedback("error", feedback_text)
+            return None
 
-    async def scale(
+        copied_image = deepcopy(image)
+        await copied_image.move_objects(children, destinations)
+        return copied_image
+
+    @prompt_function(
+        index=8,
+        description="Scales specified child elements by the provided factors. The number of children must match the number of factors.",
+    )
+    async def scale_children(
         self,
-        image: Image,
-        factor: float,
-        targets: List[Union[Image, Object, Text]],
-        axis: Literal["x", "y"] = None,
-    ) -> Image:
-        return await scale_objects(image, targets, factor, axis)
+        image: CompositeImage,
+        children: List[CANVAS_OBJECT_TYPE],
+        factors: List[float],
+    ) -> CompositeImage:
+        if len(children) != len(factors):
+            feedback_text = (
+                f"In `scale_children` function, the length of `children` ({len(children)}) "
+                f"does not match the length of `factors` ({len(factors)}). "
+                "Each child must have a corresponding scale factor."
+            )
+            self._set_feedback("error", feedback_text)
+            return None
+
+        copied_image = deepcopy(image)
+        await copied_image.scale_objects(children, factors)
+        return copied_image
+
+    @prompt_function(
+        index=9,
+        description="Creates a textbox with the specified content, font, and color properties.",
+    )
+    def create_textbox(
+        self,
+        content: str,
+        font_family: str,
+        font_size: int,
+        font_weight: str,
+        font_style: str,
+        color: str,
+    ) -> Textbox:
+        return FabricTextbox(
+            text=content,
+            fontFamily=font_family,
+            fontSize=font_size,
+            fontWeight=font_weight,
+            fontStyle=font_style,
+            fill=color,
+        )
+
+    @prompt_function(
+        index=10,
+        description="Retrieves the position of each child element in the provided list.",
+    )
+    def get_children_position(
+        self, children: List[CANVAS_OBJECT_TYPE]
+    ) -> List[Tuple[int, int]]:
+        return [(child.left, child.top) for child in children]
+
+    @prompt_function(
+        index=11,
+        description="Sends a response to the user with a specified text and optional attachments, this is a special function used to interact with the user.",
+    )
+    def response_to_user(
+        self, text: str, attachments: List[Union[CompositeImage, ImageObject]] = []
+    ) -> None:
+        id_to_varname = {id(v): k for k, v in self._context.items()}
+        varnames = [id_to_varname[id(att)] for att in attachments]
+        self._response = Message(
+            src="llm", type="response", text=text, varnames=varnames
+        )
 
     def _annotate_detections(
         self, canvas: FabricCanvas, objects: List[FabricImage]
     ) -> FabricCanvas:
-        canvas = deepcopy(canvas)
+        copied_canvas = deepcopy(canvas)
 
         for idx, obj in enumerate(objects):
             obj_box = FabricRect(
@@ -277,7 +346,7 @@ class FabricProvider(Provider):
                 width=obj.width,
                 height=obj.height,
                 stroke="red",
-                strokeWidth=3,
+                strokeWidth=canvas.backgroundImage.height // 16,
                 selectable=False,
                 fill="transparent",
             )
@@ -289,31 +358,27 @@ class FabricProvider(Provider):
                 selectable=False,
                 fill="red",
             )
-            canvas.objects.append(obj_box)
-            canvas.objects.append(obj_idx)
+            copied_canvas.objects.append(obj_box)
+            copied_canvas.objects.append(obj_idx)
 
-        return canvas
+        return copied_canvas
 
-    def create_text(
-        self,
-        content: str,
-        font_family: str,
-        font_size: int,
-        font_weight: str,
-        font_style: str,
-        color: str,
-    ) -> Text:
-        return FabricTextbox(
-            text=content,
-            fontFamily=font_family,
-            fontSize=font_size,
-            fontWeight=font_weight,
-            fontStyle=font_style,
-            fill=color,
-        )
-
-    def get_position(self, target: Union[Image, Object, Text]) -> Tuple[int, int]:
-        return target.left, target.top
-
-    def get_size(self, target: Union[Image, Object, Text]) -> Tuple[int, int]:
-        return target.width, target.height
+    def _create_filter(
+        self, filter_name: FABRIC_FILTER_NAME_TYPE, filter_value: Optional[float]
+    ) -> FabricFilter:
+        if filter_name == "Blur":
+            return BlurFilter(blur=filter_value)
+        if filter_name == "Brightness":
+            return BrightnessFilter(brightness=filter_value)
+        if filter_name == "Contrast":
+            return ContrastFilter(contrast=filter_value)
+        if filter_name == "Noise":
+            return NoiseFilter(noise=filter_value)
+        if filter_name == "Saturation":
+            return SaturationFilter(saturation=filter_value)
+        if filter_name == "Pixelate":
+            return PixelateFilter(blocksize=filter_value * 10)
+        if filter_name == "Grayscale":
+            return GrayscaleFilter()
+        if filter_name == "Invert":
+            return InvertFilter()

@@ -1,8 +1,11 @@
+from typing import Dict, List
+
 from core.controller.execute import DEFAULT_FEEDBACK
 from models.phase import ChatPhase, Execution, Message, PromptPhase
+from schemas.language import Language
 
 
-def create_fabric_exemplars():
+def create_fabric_exemplars() -> Dict[Language, List[ChatPhase]]:
     FABRIC_VI_EXEMPLARS = [
         ChatPhase(
             request=Message(
@@ -13,26 +16,36 @@ def create_fabric_exemplars():
             ),
             prompt_phases=[
                 PromptPhase(
-                    responses=[
-                        'THINKING: We need detect the dog first before we can remove it.\nCOMMANDS:\ndogs = detect(image0, prompt="dog")'
+                    answers=[
+                        (
+                            "THINKING: We need find the dog first before we can remove it.\n"
+                            "COMMANDS:\n"
+                            'dogs = segment_image_objects_by_prompt(image0, prompt="dog")'
+                        )
                     ],
                     execution=Execution(
-                        commands=['dogs = detect(image0, prompt="dog")'],
+                        commands=[
+                            'dogs = segment_image_objects_by_prompt(image0, prompt="dog")'
+                        ],
                         feedback=Message(
                             src="system",
                             type="warning",
-                            text="Detected 2 `dog` in `image0`",
+                            text="Segmented 2 `dog` in `image0`.",
                             varnames=["annotated_image0"],
                         ),
                     ),
                 ),
                 PromptPhase(
-                    responses=[
-                        'THINKING: There are 2 dogs in the image so we need to show the annotated image and ask the user to specify which one to be removed.\nCOMMANDS:\nresponse_user(text="Trong ảnh có 2 con chó, bạn muốn chọn con nào để xóa?", attachments=[annotated_image0])'
+                    answers=[
+                        (
+                            "THINKING: There are 2 dogs in the image so we need to show the annotated image and ask the user to specify which one to be removed.\n"
+                            "COMMANDS:\n"
+                            'response_to_user(text="Trong ảnh có 2 con chó, bạn muốn chọn con nào để xóa?", attachments=[annotated_image0])'
+                        )
                     ],
                     execution=Execution(
                         commands=[
-                            'response_user(text="Trong ảnh có 2 con chó, bạn muốn chọn con nào để xóa?", attachments=[annotated_image0])'
+                            'response_to_user(text="Trong ảnh có 2 con chó, bạn muốn chọn con nào để xóa?", attachments=[annotated_image0])'
                         ],
                         response=Message(
                             src="llm",
@@ -53,32 +66,40 @@ def create_fabric_exemplars():
             ),
             prompt_phases=[
                 PromptPhase(
-                    responses=[
-                        'THINKING: We need to detect the house first before we can increase the brightness of it.\nCOMMANDS:\nhouses = detect(image0, prompt="house")'
+                    answers=[
+                        (
+                            "THINKING: We need to find the house first before we can increase the brightness of it.\n"
+                            "COMMANDS:\n"
+                            'houses = segment_image_objects_by_prompt(image0, prompt="house")'
+                        )
                     ],
                     execution=Execution(
-                        commands=['houses = detect(image0, prompt="house")'],
+                        commands=[
+                            'houses = segment_image_objects_by_prompt(image0, prompt="house")'
+                        ],
                         feedback=Message(
                             src="system",
                             type="info",
-                            text="Detected 1 `house` in `image0`",
+                            text="Segmented 0 `house` in `image0`.",
                         ),
                     ),
                 ),
                 PromptPhase(
-                    responses=[
-                        'THINKING: We detected the house, now we can do the next step.\nCOMMANDS:\nimage1 = filter(image0, filter_name="brightness", filter_value=1.15, targets=houses)\nresponse_user(text="Đây là bức ảnh sau khi đã tăng độ sáng ngôi nhà lên 15%.", attachments=[image1])'
+                    answers=[
+                        (
+                            "THINKING: Since the function cannot find a house in the image, we inform the user and suggest alternative methods to locate the house (such as using a box, for example).\n"
+                            "COMMANDS:\n"
+                            'response_to_user(text="Chúng tôi không thể tìm thấy ngôi nhà trong hình ảnh. Vui lòng thử các phương pháp khác để xác định vị trí ngôi nhà, chẳng hạn như sử dụng khung để khoanh vùng.")'
+                        )
                     ],
                     execution=Execution(
                         commands=[
-                            'image1 = filter(image0, filter_name="brightness", filter_value=1.15, targets=houses)',
-                            'response_user(text="Đây là bức ảnh sau khi đã tăng độ sáng ngôi nhà lên 15%.", attachments=[image1])',
+                            'response_to_user(text="Chúng tôi không thể tìm thấy ngôi nhà trong hình ảnh. Vui lòng thử các phương pháp khác để xác định vị trí ngôi nhà, chẳng hạn như sử dụng khung để khoanh vùng.")',
                         ],
                         response=Message(
                             src="llm",
                             type="response",
-                            text="Đây là bức ảnh sau khi đã tăng độ sáng ngôi nhà lên 15%.",
-                            varnames=["image1"],
+                            text="Chúng tôi không thể tìm thấy ngôi nhà trong hình ảnh. Vui lòng thử các phương pháp khác để xác định vị trí ngôi nhà, chẳng hạn như sử dụng khung để khoanh vùng.",
                         ),
                     ),
                 ),
@@ -93,27 +114,25 @@ def create_fabric_exemplars():
             ),
             prompt_phases=[
                 PromptPhase(
-                    responses=[
-                        "THINKING: The user provided a box so we should use segment function to segment the object and return it to the user.\nCOMMANDS:\nobject = segment(image0, box=box0)"
-                    ],
-                    execution=Execution(
-                        commands=["object = segment(image0, box=box0)"],
-                        feedback=DEFAULT_FEEDBACK,
-                    ),
-                ),
-                PromptPhase(
-                    responses=[
-                        'THINKING: The object has been successfully segmented and returned.\nCOMMANDS:\nresponse_user(text="Đây là vật thể đã được cắt ra từ khung.", attachments=[object])'
+                    answers=[
+                        (
+                            "THINKING: The user provided a box so we should use segment_image_objects_by_boxes function to segment the object and return it to the user.\n"
+                            "COMMANDS:\n"
+                            "obj = segment_image_objects_by_boxes(image0, boxes=[box0])[0]\n"
+                            'response_to_user(text="Đây là vật thể đã được cắt ra từ khung.", attachments=[obj])'
+                        )
                     ],
                     execution=Execution(
                         commands=[
-                            'response_user(text="Đây là vật thể đã được cắt ra từ khung.", attachments=[object])'
+                            "obj = segment_image_objects_by_boxes(image0, boxes=[box0])[0]",
+                            'response_to_user(text="Đây là vật thể đã được cắt ra từ khung.", attachments=[obj])',
                         ],
+                        feedback=DEFAULT_FEEDBACK,
                         response=Message(
                             src="llm",
                             type="response",
                             text="Đây là vật thể đã được cắt ra từ khung.",
-                            varnames=["object"],
+                            varnames=["obj"],
                         ),
                     ),
                 ),
@@ -126,31 +145,41 @@ def create_fabric_exemplars():
             request=Message(
                 src="user",
                 type="request",
-                text="Please remove the dog from the photo",
+                text="Please remove the dog from the picture",
                 varnames=["image0"],
             ),
             prompt_phases=[
                 PromptPhase(
-                    responses=[
-                        'THINKING: We need to detect the dog first before we can remove it.\nCOMMANDS:\ndogs = detect(image0, prompt="dog")'
+                    answers=[
+                        (
+                            "THINKING: We need to find the dog first before we can remove it.\n"
+                            "COMMANDS:\n"
+                            'dogs = segment_image_objects_by_prompt(image0, prompt="dog")'
+                        )
                     ],
                     execution=Execution(
-                        commands=['dogs = detect(image0, prompt="dog")'],
+                        commands=[
+                            'dogs = segment_image_objects_by_prompt(image0, prompt="dog")'
+                        ],
                         feedback=Message(
                             src="system",
                             type="warning",
-                            text="Detected 2 `dogs` in `image0`",
+                            text="Segmented 2 `dogs` in `image0`.",
                             varnames=["annotated_image0"],
                         ),
                     ),
                 ),
                 PromptPhase(
-                    responses=[
-                        'THINKING: There are 2 dogs in the image, so we need to show the annotated image and ask the user to specify which one to remove.\nCOMMANDS:\nresponse_user(text="There are 2 dogs in the image, which one would you like to remove?", attachments=[annotated_image])'
+                    answers=[
+                        (
+                            "THINKING: There are 2 dogs in the image, so we need to show the annotated image and ask the user to specify which one to remove.\n"
+                            "COMMANDS:\n"
+                            'response_to_user(text="There are 2 dogs in the image, which one would you like to remove?", attachments=[annotated_image0])'
+                        )
                     ],
                     execution=Execution(
                         commands=[
-                            'response_user(text="There are 2 dogs in the image, which one would you like to remove?", attachments=[annotated_image0])'
+                            'response_to_user(text="There are 2 dogs in the image, which one would you like to remove?", attachments=[annotated_image0])'
                         ],
                         response=Message(
                             src="llm",
@@ -166,37 +195,45 @@ def create_fabric_exemplars():
             request=Message(
                 src="user",
                 type="request",
-                text="Please increase the brightness of the house by about 15%",
+                text="Increase the brightness of the house by around 15%",
                 varnames=["image0"],
             ),
             prompt_phases=[
                 PromptPhase(
-                    responses=[
-                        'THINKING: We need to detect the house first before we can increase its brightness.\nCOMMANDS:\nhouses = detect(image0, prompt="house")'
+                    answers=[
+                        (
+                            "THINKING: We need to find the house first before we can increase its brightness.\n"
+                            "COMMANDS:\n"
+                            'houses = segment_image_objects_by_prompt(image0, prompt="house")'
+                        )
                     ],
                     execution=Execution(
-                        commands=['houses = detect(image0, prompt="house")'],
+                        commands=[
+                            'houses = segment_image_objects_by_prompt(image0, prompt="house")'
+                        ],
                         feedback=Message(
                             src="system",
                             type="info",
-                            text="Detected 1 `house` in `image0`",
+                            text="Segmented 0 `house` in `image0`.",
                         ),
                     ),
                 ),
                 PromptPhase(
-                    responses=[
-                        'THINKING: We detected the house, now we can proceed to the next step.\nCOMMANDS:\nimage1 = filter(image0, filter_name="brightness", filter_value=1.15, targets=houses)\nresponse_user(text="Here is the image after increasing the brightness of the house by 15%.", attachments=[image1])'
+                    answers=[
+                        (
+                            "THINKING: Since the function cannot find a house in the image, we inform the user and suggest alternative methods to locate the house (such as using a box, for example).\n"
+                            "COMMANDS:\n"
+                            'response_to_user(text="We couldn’t find the house in the image. Please try alternative methods to identify the house, such as using a box to mark the area.")'
+                        )
                     ],
                     execution=Execution(
                         commands=[
-                            'image1 = filter(image0, filter_name="brightness", filter_value=1.15, targets=houses)',
-                            'response_user(text="Here is the image after increasing the brightness of the house by 15%.", attachments=[image1])',
+                            'response_to_user(text="We couldn’t find the house in the image. Please try alternative methods to identify the house, such as using a box to mark the area.")',
                         ],
                         response=Message(
                             src="llm",
                             type="response",
-                            text="Here is the image after increasing the brightness of the house by 15%.",
-                            varnames=["image1"],
+                            text="We couldn’t find the house in the image. Please try alternative methods to identify the house, such as using a box to mark the area.",
                         ),
                     ),
                 ),
@@ -206,32 +243,30 @@ def create_fabric_exemplars():
             request=Message(
                 src="user",
                 type="request",
-                text="Please crop the object in the box",
+                text="Crop the object within the box for me",
                 varnames=["image0", "box0"],
             ),
             prompt_phases=[
                 PromptPhase(
-                    responses=[
-                        "THINKING: The user provided a box, so we should use the segment function to isolate the object and return it to the user.\nCOMMANDS:\nobject = segment(image0, box=box0)"
-                    ],
-                    execution=Execution(
-                        commands=["object = segment(image0, box=box0)"],
-                        feedback=DEFAULT_FEEDBACK,
-                    ),
-                ),
-                PromptPhase(
-                    responses=[
-                        'THINKING: The object has been successfully cropped and returned.\nCOMMANDS:\nresponse_user(text="Here is the object cropped from the box.", attachments=[object])'
+                    answers=[
+                        (
+                            "THINKING: The user provided a box, so we should use the segment_image_objects_by_boxes function to segment the object and return it to the user.\n"
+                            "COMMANDS:\n"
+                            "obj = segment_image_objects_by_boxes(image0, boxes=[box0])[0]\n"
+                            'response_to_user(text="Here is the object cropped from the box.", attachments=[obj])'
+                        )
                     ],
                     execution=Execution(
                         commands=[
-                            'response_user(text="Here is the object cropped from the box.", attachments=[object])'
+                            "obj = segment_image_objects_by_boxes(image0, boxes=[box0])[0]",
+                            'response_to_user(text="Here is the object cropped from the box.", attachments=[obj])',
                         ],
+                        feedback=DEFAULT_FEEDBACK,
                         response=Message(
                             src="llm",
                             type="response",
                             text="Here is the object cropped from the box.",
-                            varnames=["object"],
+                            varnames=["obj"],
                         ),
                     ),
                 ),
@@ -239,4 +274,4 @@ def create_fabric_exemplars():
         ),
     ]
 
-    return FABRIC_VI_EXEMPLARS, FABRIC_EN_EXEMPLARS
+    return {"vi": FABRIC_VI_EXEMPLARS, "en": FABRIC_EN_EXEMPLARS}

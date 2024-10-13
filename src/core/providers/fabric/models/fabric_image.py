@@ -16,8 +16,8 @@ class FabricImage(FabricObject):
     src: str = Field(repr=False)
     filters: List[FabricFilter] = Field(default_factory=list)
     filename: Optional[str] = Field(default=None)
-    label_to_score: Dict[str, float] = Field(default_factory=dict)
-    inpainted: bool = Field(default=False)
+    label_to_score: Optional[Dict[str, float]] = Field(default=None)
+    inpainted: Optional[bool] = Field(default=None)
 
     def apply_filter(self, filt: FabricFilter) -> None:
         if isinstance(filt, AdjustableFilter):
