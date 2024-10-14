@@ -175,3 +175,6 @@ class Provider(ABC):
         varnames: List[str] = [],
     ) -> None:
         self._feedback = Message(src="system", type=type, text=text, varnames=varnames)
+        
+    def _update_context(self, key: str, value: Any) -> None:
+        self._context[key] = value

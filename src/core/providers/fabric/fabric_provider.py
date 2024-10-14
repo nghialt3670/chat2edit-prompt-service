@@ -126,7 +126,7 @@ class FabricProvider(Provider):
         else:
             annotated_image_varname = f"annotated_{image_varname}"
             annotated_image = self._annotate_detections(image, objects)
-            self.add_to_context(annotated_image_varname, annotated_image)
+            self._update_context(annotated_image_varname, annotated_image)
             self._set_feedback("warning", feedback_text, [annotated_image_varname])
 
         return objects
