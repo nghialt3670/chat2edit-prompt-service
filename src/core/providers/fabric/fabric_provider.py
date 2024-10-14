@@ -4,23 +4,17 @@ from typing import Any, List, Literal, Optional, Tuple, TypeVar, Union
 from uuid import uuid4
 
 from core.providers.fabric.fabric_exemplars import create_fabric_exemplars
-from core.providers.fabric.models import (
-    FabricCanvas,
-    FabricFilter,
-    FabricImage,
-    FabricRect,
-    FabricTextbox,
-)
-from core.providers.fabric.models.fabric_filter import (
-    BlurFilter,
-    BrightnessFilter,
-    ContrastFilter,
-    GrayscaleFilter,
-    InvertFilter,
-    NoiseFilter,
-    PixelateFilter,
-    SaturationFilter,
-)
+from core.providers.fabric.models import (FabricCanvas, FabricFilter,
+                                          FabricImage, FabricRect,
+                                          FabricTextbox)
+from core.providers.fabric.models.fabric_filter import (BlurFilter,
+                                                        BrightnessFilter,
+                                                        ContrastFilter,
+                                                        GrayscaleFilter,
+                                                        InvertFilter,
+                                                        NoiseFilter,
+                                                        PixelateFilter,
+                                                        SaturationFilter)
 from core.providers.fabric.models.fabric_group import FabricGroup
 from core.providers.provider import Provider, prompt_function
 from models.phase import Message
@@ -164,7 +158,7 @@ class FabricProvider(Provider):
         index=3,
         description="Applies a specified filter to an image or, if provided, to its child elements.",
     )
-    def apply_filter_to_image_or_children(
+    async def apply_filter_to_image_or_children(
         self,
         image: CompositeImage,
         filter_name: FABRIC_FILTER_NAME_TYPE,
@@ -294,7 +288,7 @@ class FabricProvider(Provider):
         index=9,
         description="Creates a textbox with the specified content, font, and color properties.",
     )
-    def create_textbox(
+    async def create_textbox(
         self,
         content: str,
         font_family: str,
@@ -316,7 +310,7 @@ class FabricProvider(Provider):
         index=10,
         description="Retrieves the position of each child element in the provided list.",
     )
-    def get_children_position(
+    async def get_children_position(
         self, children: List[CANVAS_OBJECT_TYPE]
     ) -> List[Tuple[int, int]]:
         return [(child.left, child.top) for child in children]
@@ -325,7 +319,7 @@ class FabricProvider(Provider):
         index=11,
         description="Sends a response to the user with a specified text and optional attachments, this is a special function used to interact with the user.",
     )
-    def response_to_user(
+    async def response_to_user(
         self, text: str, attachments: List[Union[CompositeImage, ImageObject]] = []
     ) -> None:
         id_to_varname = {id(v): k for k, v in self._context.items()}
