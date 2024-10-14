@@ -45,6 +45,8 @@ async def execute(
 
             execution.feedback = provider.get_feedback() or DEFAULT_FEEDBACK
             execution.response = provider.get_response()
+            
+            provider.clear_feedback()
 
         except:
             execution.feedback = UNKNOWN_ERROR_FEEDBACK

@@ -80,6 +80,7 @@ def prompt_function(*, index: int, description: str):
             return func(self, *args, **kwargs)
 
         setattr(wrapper, "__prompt_index__", index)
+        setattr(wrapper, "__description__", description)
         return wrapper
 
     return decorator
@@ -138,6 +139,9 @@ class Provider(ABC):
 
     def set_language(self, language: Language) -> None:
         self._language = language
+        
+    def clear_feedback(self) -> None:
+        self._feedback = None
 
     def load_context_from_buffer(self, buffer: bytes) -> None:
         self._context = self._context_adapter.validate_json(buffer)
@@ -171,5 +175,3 @@ class Provider(ABC):
     ) -> None:
         self._feedback = Message(src="system", type=type, text=text, varnames=varnames)
 
-    def _clear_feedback(self) -> None:
-        self._feedback = None
