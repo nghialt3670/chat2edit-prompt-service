@@ -29,7 +29,7 @@ class OpenAILLM(LLM):
     async def __call__(self, messages: List[str]) -> str:
         if len(messages) % 2 == 0:
             raise ValueError("Messages length must be odd")
-        
+
         input_messages = self._create_input_messages(messages)
         response = await openai.ChatCompletion.acreate(
             messages=input_messages,
@@ -38,19 +38,19 @@ class OpenAILLM(LLM):
             stop=self.stop_words,
             top_p=self.top_p,
         )
-        
+
         return response.choices[0].message.content
 
     def _create_input_messages(self, messages: Iterable[str]) -> List[str]:
         input_messages = []
-        
+
         if self.system_message is not None:
             input_messages.append({"role": "system", "content": self.system_message})
-            
+
         for prompt, answer in zip(messages[::2], messages[1::2]):
             input_messages.append({"role": "user", "content": prompt})
             input_messages.append({"role": "assistant", "content": answer})
-            
+
         input_messages.append({"role": "user", "content": messages[-1]})
-        
+
         return input_messages

@@ -58,16 +58,16 @@ def format_observation(message: Message) -> str:
 def format_phase(phase: ChatPhase) -> str:
     observation = format_observation(phase.request)
     result = f"OBSERVATION: {observation}\n"
-    
+
     for prompt_phase in phase.prompt_phases:
         if not prompt_phase.answers:
             break
-        
+
         thinking, _ = extract_thinking_commands(prompt_phase.answers[-1])
         commands = prompt_phase.execution.commands
         result += f"THINKING: {thinking}\n"
         result += "COMMANDS:\n" + "\n".join(commands) + "\n"
-        
+
         if feedback := prompt_phase.execution.feedback:
             observation = format_observation(feedback)
             result += f"OBSERVATION: {observation}\n"

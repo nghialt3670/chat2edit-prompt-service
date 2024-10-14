@@ -11,6 +11,7 @@ from fastapi import Form, HTTPException, Query, UploadFile
 from fastapi.responses import StreamingResponse
 
 from core.controller.generate import generate
+from core.providers.provider import Provider
 from deps.llms import get_llm
 from deps.providers import get_provider
 from lib.fs import get_bucket
@@ -19,7 +20,6 @@ from models.phase import Message
 from schemas.file import File
 from schemas.language import Language
 from schemas.provider import Provider as ProviderType
-from core.providers.provider import Provider
 
 router = APIRouter(prefix="/phases")
 
@@ -42,7 +42,7 @@ async def prompt(
         chat = await Chat.get(chat_id, fetch_links=True)
         if not chat:
             raise HTTPException(404)
-        
+
         bucket = get_bucket("contexts")
         context_id = chat.state.context_id
         context_stream = bucket.open_download_stream(context_id)
@@ -73,7 +73,9 @@ async def prompt(
 
         chat.phases.append(new_phase)
         context_buffer = provider.save_context_to_buffer()
-        chat.state.context_id = bucket.upload_from_stream(f"{uuid4()}.json", context_buffer)
+        chat.state.context_id = bucket.upload_from_stream(
+            f"{uuid4()}.json", context_buffer
+        )
         await chat.save(link_rule=WriteRules.WRITE)
 
         if not new_phase.response:
@@ -101,7 +103,8 @@ async def prompt(
     except Exception as e:
         print(traceback.format_exc())
         raise HTTPException(500, str(e))
-    
+
+
 async def convert_upload_files_to_files(upload_files: List[UploadFile]) -> List[File]:
     return [
         File(

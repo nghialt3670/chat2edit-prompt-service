@@ -19,7 +19,7 @@ async def create_chat(request: ChatCreateRequest):
         context_buffer = json.dumps({}).encode()
         context_id = bucket.upload_from_stream(f"{uuid4()}.json", context_buffer)
         state = ChatState(context_id=context_id)
-        
+
         chat = Chat(id=PydanticObjectId(request.chat_id), state=state)
         await chat.save()
 

@@ -30,7 +30,7 @@ async def generate(
             exemplars=provider.get_exemplars(),
             phases=phases + [new_phase],
         )
-        
+
         prompt_phase.prompts.append(prompt)
         messages = [prompt]
         commands = None
@@ -40,12 +40,12 @@ async def generate(
                 start = time.time()
                 answer = await llm(messages)
                 end = time.time()
-                
+
                 duration = end - start
-                
+
                 prompt_phase.durations.append(duration)
                 prompt_phase.answers.append(answer)
-                
+
                 messages.append(answer)
             except Exception:
                 prompt_phase.tracebacks.append(traceback.format_exc())

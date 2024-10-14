@@ -55,15 +55,15 @@ class GoogleLLM(LLM):
     async def __call__(self, messages: Iterable[str]) -> str:
         if len(messages) % 2 == 0:
             raise ValueError("Messages length must be odd")
-        
+
         history = [
             {"role": "user" if i % 2 == 0 else "model", "parts": message}
             for i, message in enumerate(messages[:-1])
         ]
-        
+
         chat_session = self._model.start_chat(history=history)
         response = await chat_session.send_message_async(
             messages[-1], safety_settings=SAFETY_SETTINGS
         )
-        
+
         return response.text
