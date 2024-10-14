@@ -354,7 +354,7 @@ class FabricProvider(Provider):
                 width=obj.width,
                 height=obj.height,
                 stroke="red",
-                strokeWidth=canvas.backgroundImage.height // 16,
+                strokeWidth=canvas.backgroundImage.height // 30,
                 selectable=False,
                 fill="transparent",
             )
@@ -362,7 +362,7 @@ class FabricProvider(Provider):
                 text=f"{idx}",
                 left=obj.left,
                 top=obj.top,
-                fontSize=canvas.backgroundImage.height // 8,
+                fontSize=canvas.backgroundImage.height // 10,
                 selectable=False,
                 fill="red",
             )
