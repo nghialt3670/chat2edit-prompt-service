@@ -1,7 +1,7 @@
 import inspect
+import traceback
 from abc import ABC, abstractmethod
 from functools import wraps
-import traceback
 from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Union
 
 from pydantic import TypeAdapter
@@ -20,7 +20,7 @@ UNEXPECTED_ERROR_OCCURRED_TEMPLATE = (
 
 def validate_params_by_annotations(func):
     @wraps(func)
-    def wrapper(self, *args, **kwargs):
+    async def wrapper(self, *args, **kwargs):
         signature = inspect.signature(func)
         parameters = signature.parameters
 
@@ -35,7 +35,7 @@ def validate_params_by_annotations(func):
 
             try:
                 TypeAdapter(annotation).validate_python(param_value)
-            except Exception as e:
+            except:
                 annotation_name = get_annotation_name(annotation)
                 value_type_name = type(param_value).__name__
                 feedback_text = INVALID_PARAMETER_TEMPLATE.format(
@@ -47,20 +47,19 @@ def validate_params_by_annotations(func):
                 self._set_feedback("error", feedback_text)
                 return None
 
-        return func(self, *args, **kwargs)
+        return await func(self, *args, **kwargs)
 
     return wrapper
 
 
 def catch_unexpected_error(func):
     @wraps(func)
-    def wrapper(self, *args, **kwargs):
+    async def wrapper(self, *args, **kwargs):
         if not self._language or not self._context:
             raise RuntimeError("Provider has not been initialized")
 
         try:
-            result = func(self, *args, **kwargs)
-            return result
+            return await func(self, *args, **kwargs)
         except Exception as e:
             feedback_text = UNEXPECTED_ERROR_OCCURRED_TEMPLATE.format(
                 f=func.__name__, e=e
@@ -76,8 +75,8 @@ def prompt_function(*, index: int, description: str):
         @catch_unexpected_error
         @validate_params_by_annotations
         @wraps(func)
-        def wrapper(self, *args, **kwargs):
-            return func(self, *args, **kwargs)
+        async def wrapper(self, *args, **kwargs):
+            return await func(self, *args, **kwargs)
 
         setattr(wrapper, "__prompt_index__", index)
         setattr(wrapper, "__description__", description)
@@ -126,7 +125,7 @@ class Provider(ABC):
     def get_varname(self, value: Any) -> None:
         id_to_varname = {id(v): k for k, v in self._context.items()}
         return id_to_varname[id(value)]
-    
+
     def get_obj_alias(self, obj: Any) -> str:
         return self._type_to_alias[type(obj)]
 
@@ -139,7 +138,7 @@ class Provider(ABC):
 
     def set_language(self, language: Language) -> None:
         self._language = language
-        
+
     def clear_feedback(self) -> None:
         self._feedback = None
 
@@ -152,8 +151,10 @@ class Provider(ABC):
         return self._context_adapter.dump_json(filtered_context)
 
     def _filter_context(self, context: Dict[str, Any]) -> Dict[str, Any]:
-        invalid_keys = {k for k, v in context.items() if not self._check_context_value(v)}
-        
+        invalid_keys = {
+            k for k, v in context.items() if not self._check_context_value(v)
+        }
+
         for k in invalid_keys:
             context.pop(k)
 
@@ -174,4 +175,3 @@ class Provider(ABC):
         varnames: List[str] = [],
     ) -> None:
         self._feedback = Message(src="system", type=type, text=text, varnames=varnames)
-
