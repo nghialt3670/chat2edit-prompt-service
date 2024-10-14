@@ -4,23 +4,44 @@ from uuid import uuid4
 from pydantic import BaseModel, Field
 
 
+from pydantic import BaseModel, Field
+from typing import List, Optional
+from uuid import uuid4
+
 class FabricObject(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid4()))
-    angle: float = Field(default=0.0)
+    type: str = Field(default="FabricObject")
+    version: str = Field(default="6.0.1")
+    originX: str = Field(default="left")
+    originY: str = Field(default="top")
     left: float = Field(default=0.0)
     top: float = Field(default=0.0)
-    width: float = Field(default=0.0)
-    height: float = Field(default=0.0)
+    width: Optional[float] = Field(default=None)
+    height: Optional[float] = Field(default=None)
+    fill: str = Field(default="rgb(0,0,0)")
+    selectable: bool = Field(default=True)
+    stroke: Optional[str] = Field(default=None)
+    strokeWidth: int = Field(default=1)
+    strokeDashArray: Optional[List[int]] = Field(default=None)
+    strokeLineCap: str = Field(default="butt")
+    strokeDashOffset: int = Field(default=0)
+    strokeLineJoin: str = Field(default="miter")
+    strokeUniform: bool = Field(default=False)
+    strokeMiterLimit: int = Field(default=4)
     scaleX: float = Field(default=1.0)
     scaleY: float = Field(default=1.0)
+    angle: float = Field(default=0.0)
     flipX: bool = Field(default=False)
     flipY: bool = Field(default=False)
     opacity: float = Field(default=1.0)
-    fill: str = Field(default="rgb(0,0,0)")
-    stroke: Optional[str] = Field(default=None)
-    strokeWidth: int = Field(default=0)
-    fill: str = Field(default="rgb(0,0,0)")
-    selectable: bool = Field(default=True)
+    shadow: Optional[str] = Field(default=None)
+    visible: bool = Field(default=True)
+    backgroundColor: str = Field(default="")
+    fillRule: str = Field(default="nonzero")
+    paintFirst: str = Field(default="fill")
+    globalCompositeOperation: str = Field(default="source-over")
+    skewX: int = Field(default=0)
+    skewY: int = Field(default=0)
 
     def get_box(self) -> Tuple[int, int, int, int]:
         return (
