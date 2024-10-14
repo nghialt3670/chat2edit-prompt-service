@@ -19,6 +19,8 @@ class FabricObject(BaseModel):
     fill: str = Field(default="rgb(0,0,0)")
     stroke: Optional[str] = Field(default=None)
     strokeWidth: int = Field(default=0)
+    fill: str = Field(default="rgb(0,0,0)")
+    selectable: bool = Field(default=True)
 
     def get_box(self) -> Tuple[int, int, int, int]:
         return (
