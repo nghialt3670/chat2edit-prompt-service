@@ -1,20 +1,30 @@
 import base64 as b64
+import io
 from copy import deepcopy
 from typing import Any, List, Literal, Optional, Tuple, TypeVar, Union
 from uuid import uuid4
 
+import PIL
+import PIL.Image
+
 from core.providers.fabric.fabric_exemplars import create_fabric_exemplars
-from core.providers.fabric.models import (FabricCanvas, FabricFilter,
-                                          FabricImage, FabricRect,
-                                          FabricTextbox)
-from core.providers.fabric.models.fabric_filter import (BlurFilter,
-                                                        BrightnessFilter,
-                                                        ContrastFilter,
-                                                        GrayscaleFilter,
-                                                        InvertFilter,
-                                                        NoiseFilter,
-                                                        PixelateFilter,
-                                                        SaturationFilter)
+from core.providers.fabric.models import (
+    FabricCanvas,
+    FabricFilter,
+    FabricImage,
+    FabricRect,
+    FabricTextbox,
+)
+from core.providers.fabric.models.fabric_filter import (
+    BlurFilter,
+    BrightnessFilter,
+    ContrastFilter,
+    GrayscaleFilter,
+    InvertFilter,
+    NoiseFilter,
+    PixelateFilter,
+    SaturationFilter,
+)
 from core.providers.fabric.models.fabric_group import FabricGroup
 from core.providers.provider import Provider, prompt_function
 from models.phase import Message
@@ -72,8 +82,12 @@ class FabricProvider(Provider):
         if file.content_type.startswith("image/"):
             base64 = b64.b64encode(file.buffer).decode()
             data_url = f"data:{file.content_type};base64,{base64}"
-            image = FabricImage(src=data_url, filename=file.name)
-            return [FabricCanvas(backgroundImage=image)]
+            image = PIL.Image.open(io.BytesIO(file.buffer))
+            width, height = image.size
+            background_image = FabricImage(
+                src=data_url, filename=file.name, width=width, height=height
+            )
+            return [FabricCanvas(backgroundImage=background_image)]
 
         elif file.name.endswith(".fcanvas"):
             canvas = FabricCanvas.model_validate_json(file.buffer)

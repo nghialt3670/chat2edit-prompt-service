@@ -1,23 +1,18 @@
-from typing import Literal, Optional, Tuple
+from typing import List, Literal, Optional, Tuple
 from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
-
-from pydantic import BaseModel, Field
-from typing import List, Optional
-from uuid import uuid4
 
 class FabricObject(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid4()))
     type: str = Field(default="FabricObject")
-    version: str = Field(default="6.0.1")
     originX: str = Field(default="left")
     originY: str = Field(default="top")
     left: float = Field(default=0.0)
     top: float = Field(default=0.0)
-    width: Optional[float] = Field(default=None)
-    height: Optional[float] = Field(default=None)
+    width: float = Field(default=0.0)
+    height: float = Field(default=0.0)
     fill: str = Field(default="rgb(0,0,0)")
     selectable: bool = Field(default=True)
     stroke: Optional[str] = Field(default=None)
