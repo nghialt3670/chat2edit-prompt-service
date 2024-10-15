@@ -165,7 +165,7 @@ class FabricProvider(Provider):
         self, image: CompositeImage, objects: List[ImageObject], prompt: str
     ) -> CompositeImage:
         copied_image = deepcopy(image)
-        await copied_image.inpaint_image_objects_by_prompt(objects, prompt)
+        await copied_image.replace_objects_by_prompt(objects, prompt)
         return copied_image
 
     @prompt_function(
