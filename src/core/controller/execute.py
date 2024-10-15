@@ -17,12 +17,12 @@ UNKNOWN_ERROR_FEEDBACK = Message(
 )
 
 WRAPPER_FUNCTION_TEMPLATE = """
-async def __wrapper_func(__context):
+async def __wrapper_func(__ctx__):
 {command}
     
     for k, v in locals().items():
-        if k != "__context":
-            __context[k] = v
+        if k != "__ctx__":
+            __ctx__[k] = v
 """
 
 
@@ -38,7 +38,7 @@ async def execute(
         end = None
 
         try:
-            processed_cmd = preprocess_command(cmd, context)
+            processed_cmd = preprocess_command(cmd)
             function = create_wrapper_function(WRAPPER_FUNCTION_TEMPLATE, processed_cmd)
 
             await function(context)
@@ -75,15 +75,8 @@ def adjust_offsets(command: str, start: int, end: int) -> Tuple[int, int]:
 
 
 def preprocess_command(
-    command: str, context: Dict[str, Any], context_name: str = "__context"
+    command: str, context_name: str = "__ctx__"
 ) -> str:
-    def replace_var(var):
-        # If it is a defined coroutine function (already in context)
-        if var in context and inspect.iscoroutinefunction(context[var]):
-            return f"await {context_name}['{var}']"
-
-        return f"{context_name}['{var}']"
-
     processed_command = command
     while True:
         replacements = []
@@ -93,7 +86,11 @@ def preprocess_command(
 
             # Adjust the offsets when the commands contains utf-8 characters
             start, end = adjust_offsets(command, node.col_offset, node.end_col_offset)
-            replacements.append((start, end, replace_var(processed_command[start:end])))
+            
+            varname = processed_command[start:end]
+            processed_varname = f"{context_name}['{varname}']"
+            
+            replacements.append((start, end, processed_varname))
 
         if not replacements:
             break

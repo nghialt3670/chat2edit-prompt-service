@@ -20,12 +20,12 @@ def create_fabric_exemplars() -> Dict[Language, List[ChatPhase]]:
                         (
                             "THINKING: We need find the dog first before we can remove it.\n"
                             "COMMANDS:\n"
-                            'dogs = segment_image_objects_by_prompt(image0, prompt="dog")'
+                            'dogs = await segment_image_objects_by_prompt(image0, prompt="dog")'
                         )
                     ],
                     execution=Execution(
                         commands=[
-                            'dogs = segment_image_objects_by_prompt(image0, prompt="dog")'
+                            'dogs = await segment_image_objects_by_prompt(image0, prompt="dog")'
                         ],
                         feedback=Message(
                             src="system",
@@ -40,12 +40,12 @@ def create_fabric_exemplars() -> Dict[Language, List[ChatPhase]]:
                         (
                             "THINKING: There are 2 dogs in the image so we need to show the annotated image and ask the user to specify which one to be removed.\n"
                             "COMMANDS:\n"
-                            'response_to_user(text="Trong ảnh có 2 con chó, bạn muốn chọn con nào để xóa?", attachments=[annotated_image0])'
+                            'await response_to_user(text="Trong ảnh có 2 con chó, bạn muốn chọn con nào để xóa?", attachments=[annotated_image0])'
                         )
                     ],
                     execution=Execution(
                         commands=[
-                            'response_to_user(text="Trong ảnh có 2 con chó, bạn muốn chọn con nào để xóa?", attachments=[annotated_image0])'
+                            'await response_to_user(text="Trong ảnh có 2 con chó, bạn muốn chọn con nào để xóa?", attachments=[annotated_image0])'
                         ],
                         response=Message(
                             src="llm",
@@ -70,12 +70,12 @@ def create_fabric_exemplars() -> Dict[Language, List[ChatPhase]]:
                         (
                             "THINKING: We need to find the house first before we can increase the brightness of it.\n"
                             "COMMANDS:\n"
-                            'houses = segment_image_objects_by_prompt(image0, prompt="house")'
+                            'houses = await segment_image_objects_by_prompt(image0, prompt="house")'
                         )
                     ],
                     execution=Execution(
                         commands=[
-                            'houses = segment_image_objects_by_prompt(image0, prompt="house")'
+                            'houses = await segment_image_objects_by_prompt(image0, prompt="house")'
                         ],
                         feedback=Message(
                             src="system",
@@ -89,12 +89,12 @@ def create_fabric_exemplars() -> Dict[Language, List[ChatPhase]]:
                         (
                             "THINKING: Since the function cannot find a house in the image, we inform the user and suggest alternative methods to locate the house (such as using a box, for example).\n"
                             "COMMANDS:\n"
-                            'response_to_user(text="Chúng tôi không thể tìm thấy ngôi nhà trong hình ảnh. Vui lòng thử các phương pháp khác để xác định vị trí ngôi nhà, chẳng hạn như sử dụng khung để khoanh vùng.")'
+                            'await response_to_user(text="Chúng tôi không thể tìm thấy ngôi nhà trong hình ảnh. Vui lòng thử các phương pháp khác để xác định vị trí ngôi nhà, chẳng hạn như sử dụng khung để khoanh vùng.")'
                         )
                     ],
                     execution=Execution(
                         commands=[
-                            'response_to_user(text="Chúng tôi không thể tìm thấy ngôi nhà trong hình ảnh. Vui lòng thử các phương pháp khác để xác định vị trí ngôi nhà, chẳng hạn như sử dụng khung để khoanh vùng.")',
+                            'await response_to_user(text="Chúng tôi không thể tìm thấy ngôi nhà trong hình ảnh. Vui lòng thử các phương pháp khác để xác định vị trí ngôi nhà, chẳng hạn như sử dụng khung để khoanh vùng.")',
                         ],
                         response=Message(
                             src="llm",
@@ -118,14 +118,14 @@ def create_fabric_exemplars() -> Dict[Language, List[ChatPhase]]:
                         (
                             "THINKING: The user provided a box so we should use segment_image_objects_by_boxes function to segment the object and return it to the user.\n"
                             "COMMANDS:\n"
-                            "obj = segment_image_objects_by_boxes(image0, boxes=[box0])[0]\n"
-                            'response_to_user(text="Đây là vật thể đã được cắt ra từ khung.", attachments=[obj])'
+                            "obj = (await segment_image_objects_by_boxes(image0, boxes=[box0]))[0]\n"
+                            'await response_to_user(text="Đây là vật thể đã được cắt ra từ khung.", attachments=[obj])'
                         )
                     ],
                     execution=Execution(
                         commands=[
-                            "obj = segment_image_objects_by_boxes(image0, boxes=[box0])[0]",
-                            'response_to_user(text="Đây là vật thể đã được cắt ra từ khung.", attachments=[obj])',
+                            "obj = (await segment_image_objects_by_boxes(image0, boxes=[box0]))[0]",
+                            'await response_to_user(text="Đây là vật thể đã được cắt ra từ khung.", attachments=[obj])',
                         ],
                         feedback=DEFAULT_FEEDBACK,
                         response=Message(
@@ -154,12 +154,12 @@ def create_fabric_exemplars() -> Dict[Language, List[ChatPhase]]:
                         (
                             "THINKING: We need to find the dog first before we can remove it.\n"
                             "COMMANDS:\n"
-                            'dogs = segment_image_objects_by_prompt(image0, prompt="dog")'
+                            'dogs = await segment_image_objects_by_prompt(image0, prompt="dog")'
                         )
                     ],
                     execution=Execution(
                         commands=[
-                            'dogs = segment_image_objects_by_prompt(image0, prompt="dog")'
+                            'dogs = await segment_image_objects_by_prompt(image0, prompt="dog")'
                         ],
                         feedback=Message(
                             src="system",
@@ -174,12 +174,12 @@ def create_fabric_exemplars() -> Dict[Language, List[ChatPhase]]:
                         (
                             "THINKING: There are 2 dogs in the image, so we need to show the annotated image and ask the user to specify which one to remove.\n"
                             "COMMANDS:\n"
-                            'response_to_user(text="There are 2 dogs in the image, which one would you like to remove?", attachments=[annotated_image0])'
+                            'await response_to_user(text="There are 2 dogs in the image, which one would you like to remove?", attachments=[annotated_image0])'
                         )
                     ],
                     execution=Execution(
                         commands=[
-                            'response_to_user(text="There are 2 dogs in the image, which one would you like to remove?", attachments=[annotated_image0])'
+                            'await response_to_user(text="There are 2 dogs in the image, which one would you like to remove?", attachments=[annotated_image0])'
                         ],
                         response=Message(
                             src="llm",
@@ -204,12 +204,12 @@ def create_fabric_exemplars() -> Dict[Language, List[ChatPhase]]:
                         (
                             "THINKING: We need to find the house first before we can increase its brightness.\n"
                             "COMMANDS:\n"
-                            'houses = segment_image_objects_by_prompt(image0, prompt="house")'
+                            'houses = await segment_image_objects_by_prompt(image0, prompt="house")'
                         )
                     ],
                     execution=Execution(
                         commands=[
-                            'houses = segment_image_objects_by_prompt(image0, prompt="house")'
+                            'houses = await segment_image_objects_by_prompt(image0, prompt="house")'
                         ],
                         feedback=Message(
                             src="system",
@@ -223,12 +223,12 @@ def create_fabric_exemplars() -> Dict[Language, List[ChatPhase]]:
                         (
                             "THINKING: Since the function cannot find a house in the image, we inform the user and suggest alternative methods to locate the house (such as using a box, for example).\n"
                             "COMMANDS:\n"
-                            'response_to_user(text="We couldn’t find the house in the image. Please try alternative methods to identify the house, such as using a box to mark the area.")'
+                            'await response_to_user(text="We couldn’t find the house in the image. Please try alternative methods to identify the house, such as using a box to mark the area.")'
                         )
                     ],
                     execution=Execution(
                         commands=[
-                            'response_to_user(text="We couldn’t find the house in the image. Please try alternative methods to identify the house, such as using a box to mark the area.")',
+                            'await response_to_user(text="We couldn’t find the house in the image. Please try alternative methods to identify the house, such as using a box to mark the area.")',
                         ],
                         response=Message(
                             src="llm",
@@ -252,14 +252,14 @@ def create_fabric_exemplars() -> Dict[Language, List[ChatPhase]]:
                         (
                             "THINKING: The user provided a box, so we should use the segment_image_objects_by_boxes function to segment the object and return it to the user.\n"
                             "COMMANDS:\n"
-                            "obj = segment_image_objects_by_boxes(image0, boxes=[box0])[0]\n"
-                            'response_to_user(text="Here is the object cropped from the box.", attachments=[obj])'
+                            "obj = (await segment_image_objects_by_boxes(image0, boxes=[box0]))[0]\n"
+                            'await response_to_user(text="Here is the object cropped from the box.", attachments=[obj])'
                         )
                     ],
                     execution=Execution(
                         commands=[
-                            "obj = segment_image_objects_by_boxes(image0, boxes=[box0])[0]",
-                            'response_to_user(text="Here is the object cropped from the box.", attachments=[obj])',
+                            "obj = (await segment_image_objects_by_boxes(image0, boxes=[box0]))[0]",
+                            'await response_to_user(text="Here is the object cropped from the box.", attachments=[obj])',
                         ],
                         feedback=DEFAULT_FEEDBACK,
                         response=Message(
