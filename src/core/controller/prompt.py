@@ -43,7 +43,9 @@ def create_prompt(
 
 
 def format_function(function: Callable) -> str:
-    return f"async def {function.__name__}{inspect.signature(function)}".replace("~", "")
+    return f"async def {function.__name__}{inspect.signature(function)}".replace(
+        "~", ""
+    )
 
 
 def format_observation(message: Message) -> str:

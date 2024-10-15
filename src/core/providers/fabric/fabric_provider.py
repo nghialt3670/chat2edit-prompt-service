@@ -346,10 +346,10 @@ class FabricProvider(Provider):
         self, canvas: FabricCanvas, objects: List[FabricImage]
     ) -> FabricCanvas:
         copied_canvas = deepcopy(canvas)
-        
+
         box_stroke_width = canvas.backgroundImage.height // 100
         idx_font_size = canvas.backgroundImage.height // 10
-        
+
         for idx, obj in enumerate(objects):
             obj_box = FabricRect(
                 left=obj.left,

@@ -1,19 +1,18 @@
 import ast
-import inspect
 import textwrap
 import time
 import traceback
-from typing import Any, Callable, Coroutine, Dict, Iterable, Tuple
+from typing import Callable, Iterable, Tuple
 
-from core.providers.provider import Provider
+from core.providers.provider import UNEXPECTED_ERROR_OCCURRED_TEMPLATE, Provider
 from models.phase import Execution, Message
 
 DEFAULT_FEEDBACK = Message(
     src="system", type="info", text="Commands executed successfully."
 )
 
-UNKNOWN_ERROR_FEEDBACK = Message(
-    src="system", type="error", text="Unknown error occurred!"
+UNEXPECTED_ERROR_OCCURRED_TEMPLATE = (
+    "Unexpected error occurred while executing `{c}` command: `{e}`."
 )
 
 WRAPPER_FUNCTION_TEMPLATE = """
@@ -48,8 +47,10 @@ async def execute(
 
             provider.clear_feedback()
 
-        except:
-            execution.feedback = UNKNOWN_ERROR_FEEDBACK
+        except Exception as e:
+            feedback_text = UNEXPECTED_ERROR_OCCURRED_TEMPLATE.format(c=cmd, e=e)
+            error_feedback = Message(src="system", type="error", text=feedback_text)
+            execution.feedback = provider.get_feedback() or error_feedback
             execution.traceback = traceback.format_exc()
 
         finally:
@@ -74,9 +75,7 @@ def adjust_offsets(command: str, start: int, end: int) -> Tuple[int, int]:
     return start_bytes, end_bytes
 
 
-def preprocess_command(
-    command: str, context_name: str = "__ctx__"
-) -> str:
+def preprocess_command(command: str, context_name: str = "__ctx__") -> str:
     processed_command = command
     while True:
         replacements = []
@@ -86,10 +85,10 @@ def preprocess_command(
 
             # Adjust the offsets when the commands contains utf-8 characters
             start, end = adjust_offsets(command, node.col_offset, node.end_col_offset)
-            
+
             varname = processed_command[start:end]
             processed_varname = f"{context_name}['{varname}']"
-            
+
             replacements.append((start, end, processed_varname))
 
         if not replacements:
