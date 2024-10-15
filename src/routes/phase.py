@@ -123,7 +123,7 @@ def assign_files(files: List[File], state: ChatState, provider: Provider) -> Lis
     for file in files:
         parts = file.name.split(".")
         file_id = parts[0]
-        file.name = parts[1]
+        file.name = parts[1:]
         file_varnames = []
 
         if file_id in state.id_to_varnames:
