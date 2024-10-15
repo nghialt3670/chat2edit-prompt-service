@@ -25,7 +25,7 @@ router = APIRouter(prefix="/phases")
 
 MAX_CHAT_PHASES = 10
 MAX_PROMPT_PHASES = 4
-LLM = "gemini-1.5-flash"
+LLM = "gpt-3.5-turbo"
 
 
 @router.post("")
