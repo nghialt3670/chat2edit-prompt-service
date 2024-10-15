@@ -346,7 +346,10 @@ class FabricProvider(Provider):
         self, canvas: FabricCanvas, objects: List[FabricImage]
     ) -> FabricCanvas:
         copied_canvas = deepcopy(canvas)
-
+        
+        box_stroke_width = canvas.backgroundImage.height // 100
+        idx_font_size = canvas.backgroundImage.height // 10
+        
         for idx, obj in enumerate(objects):
             obj_box = FabricRect(
                 left=obj.left,
@@ -354,15 +357,16 @@ class FabricProvider(Provider):
                 width=obj.width,
                 height=obj.height,
                 stroke="red",
-                strokeWidth=canvas.backgroundImage.height // 30,
+                strokeWidth=box_stroke_width,
                 selectable=False,
                 fill="transparent",
             )
             obj_idx = FabricTextbox(
                 text=f"{idx}",
-                left=obj.left,
-                top=obj.top,
-                fontSize=canvas.backgroundImage.height // 10,
+                left=obj.left + 3 * box_stroke_width,
+                top=obj.top + box_stroke_width,
+                fontSize=idx_font_size,
+                fontWeight="bold",
                 selectable=False,
                 fill="red",
             )
