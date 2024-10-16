@@ -2,7 +2,7 @@ import ast
 import textwrap
 import time
 import traceback
-from typing import Callable, Iterable, Tuple
+from typing import Any, Callable, Dict, Iterable, Tuple
 
 from core.providers.provider import UNEXPECTED_ERROR_OCCURRED_TEMPLATE, Provider
 from models.phase import Execution, Message
@@ -12,11 +12,11 @@ DEFAULT_FEEDBACK = Message(
 )
 
 UNEXPECTED_ERROR_OCCURRED_TEMPLATE = (
-    "Unexpected error occurred while executing `{c}` command: `{e}`."
+    "Unexpected error occurred while executing command `{c}`: `{t}: {e}`."
 )
 
 WRAPPER_FUNCTION_TEMPLATE = """
-async def __wrapper_func(__ctx__):
+async def __wrapper_func__(__ctx__):
 {command}
     
     for k, v in locals().items():
@@ -37,7 +37,7 @@ async def execute(
         end = None
 
         try:
-            processed_cmd = preprocess_command(cmd)
+            processed_cmd = preprocess_command(cmd, context)
             function = create_wrapper_function(WRAPPER_FUNCTION_TEMPLATE, processed_cmd)
 
             await function(context)
@@ -48,7 +48,9 @@ async def execute(
             provider.clear_feedback()
 
         except Exception as e:
-            feedback_text = UNEXPECTED_ERROR_OCCURRED_TEMPLATE.format(c=cmd, e=e)
+            feedback_text = UNEXPECTED_ERROR_OCCURRED_TEMPLATE.format(
+                c=cmd, t=type(e).__name__, e=e
+            )
             error_feedback = Message(src="system", type="error", text=feedback_text)
             execution.feedback = provider.get_feedback() or error_feedback
             execution.traceback = traceback.format_exc()
@@ -66,30 +68,34 @@ async def execute(
     return execution
 
 
-def adjust_offsets(command: str, start: int, end: int) -> Tuple[int, int]:
-    # Convert the command to bytes and find the corresponding byte positions
-    command_bytes = command.encode("utf-8")
-    start_bytes = len(command_bytes[:start].decode("utf-8"))
-    end_bytes = len(command_bytes[:end].decode("utf-8"))
-
-    return start_bytes, end_bytes
-
-
-def preprocess_command(command: str, context_name: str = "__ctx__") -> str:
+def preprocess_command(
+    command: str, context: Dict[str, Any], context_name: str = "__ctx__"
+) -> str:
     processed_command = command
     while True:
         replacements = []
+        curr_idx = 0
+        
         for node in ast.walk(ast.parse(processed_command, mode="exec")):
-            if not isinstance(node, ast.Name) or node.id == context_name:
+            if (
+                not isinstance(node, ast.Name)
+                or node.id not in context
+                or node.id == context_name
+            ):
                 continue
 
-            # Adjust the offsets when the commands contains utf-8 characters
-            start, end = adjust_offsets(command, node.col_offset, node.end_col_offset)
+            start = processed_command.find(node.id, curr_idx)
 
-            varname = processed_command[start:end]
+            if start == -1:
+                continue
+
+            curr_idx = start + len(node.id)
+
+            varname = processed_command[start:curr_idx]
             processed_varname = f"{context_name}['{varname}']"
+            processed_command.replace()
 
-            replacements.append((start, end, processed_varname))
+            replacements.append((start, curr_idx, processed_varname))
 
         if not replacements:
             break
@@ -104,7 +110,7 @@ def preprocess_command(command: str, context_name: str = "__ctx__") -> str:
 
 
 def create_wrapper_function(
-    template: str, command: str, func_name: str = "__wrapper_func"
+    template: str, command: str, func_name: str = "__wrapper_func__"
 ) -> Callable:
     local_vars = {}
     exec(
