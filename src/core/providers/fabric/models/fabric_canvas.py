@@ -199,8 +199,10 @@ class FabricCanvas(BaseModel):
 
     async def insert_objects(self, objects: List[FabricObject]) -> None:
         self.objects.extend(objects)
-        
-    async def replace_objects_by_prompt(self, objects: List[FabricObject], prompt: str) -> None:
+
+    async def replace_objects_by_prompt(
+        self, objects: List[FabricObject], prompt: str
+    ) -> None:
         uninpainted_objects = self._get_uninpainted_image_objects(objects)
         await self.inpaint_image_objects_by_prompt(uninpainted_objects, prompt)
         ids_to_remove = set(obj.id for obj in objects)
