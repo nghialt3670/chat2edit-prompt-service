@@ -93,7 +93,6 @@ def preprocess_command(
 
             varname = processed_command[start:curr_idx]
             processed_varname = f"{context_name}['{varname}']"
-            processed_command.replace()
 
             replacements.append((start, curr_idx, processed_varname))
 
