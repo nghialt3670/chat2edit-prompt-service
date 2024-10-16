@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, Union
 
 from pydantic import Field
 
@@ -7,7 +7,7 @@ from core.providers.fabric.models.fabric_object import FabricObject
 
 class FabricTextbox(FabricObject):
     type: Literal["Textbox"] = Field(default="Textbox")
-    fontSize: int = Field(default=40)
+    fontSize: Union[float, str] = Field(default=40.0)
     fontWeight: str = Field(default="normal")
     fontFamily: str = Field(default="Times New Roman")
     fontStyle: str = Field(default="normal")

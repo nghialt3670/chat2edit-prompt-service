@@ -68,6 +68,20 @@ ADJUSTABLE_FILTER_NAME_SET = {
 }
 FILTERABLE_OBJECT_TYPE = Union[CompositeImage, ImageObject]
 CANVAS_OBJECT_TYPE = Union[CompositeImage, ImageObject, Textbox]
+FONT_FAMILY_TYPE = Literal[
+    "Arial", 
+    "Verdana", 
+    "Helvetica", 
+    "Tahoma", 
+    "Trebuchet MS", 
+    "Georgia", 
+    "Times New Roman", 
+    "Courier New", 
+    "Lucida Console", 
+    "Palatino Linotype"
+]
+FONT_WEIGHT_TYPE = Literal["light", "normal", "bold"]
+FONT_STYLE_TYPE = Literal["normal", "oblique", "italic"]
 
 
 class FabricProvider(Provider):
@@ -249,6 +263,11 @@ class FabricProvider(Provider):
         children: List[CANVAS_OBJECT_TYPE],
     ) -> CompositeImage:
         copied_image = deepcopy(image)
+        
+        for obj in children:
+            if isinstance(obj, FabricTextbox) and obj.fontSize == "default":
+                obj.fontSize = image.backgroundImage.height // 6
+                
         await copied_image.insert_objects(children)
         return copied_image
 
@@ -316,15 +335,15 @@ class FabricProvider(Provider):
     )
     async def create_textbox(
         self,
-        content: str,
-        font_family: str,
-        font_size: int,
-        font_weight: str,
-        font_style: str,
-        color: str,
+        text: str,
+        font_family: FONT_FAMILY_TYPE = "Arial",
+        font_size: Union[int, str] = "default",
+        font_weight: FONT_WEIGHT_TYPE = "normal",
+        font_style: FONT_STYLE_TYPE = "normal",
+        color: str = "black",
     ) -> Textbox:
         return FabricTextbox(
-            text=content,
+            text=text,
             fontFamily=font_family,
             fontSize=font_size,
             fontWeight=font_weight,

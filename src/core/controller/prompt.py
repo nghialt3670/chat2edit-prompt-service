@@ -43,7 +43,8 @@ def create_prompt(
 
 
 def format_function(function: Callable) -> str:
-    return f"async def {function.__name__}{inspect.signature(function)}".replace(
+    description = getattr(function, "__description__", None)
+    return f"# {description}\nasync def {function.__name__}{inspect.signature(function)}".replace(
         "~", ""
     )
 
