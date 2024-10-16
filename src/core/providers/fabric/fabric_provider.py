@@ -239,9 +239,21 @@ class FabricProvider(Provider):
             copied_image.backgroundImage.flip(axis)
 
         return copied_image
+    
+    @prompt_function(
+        index=6, description="Insert specified child elements at the top-left corner of the image."
+    )
+    async def insert_children(
+        self,
+        image: CompositeImage,
+        children: List[CANVAS_OBJECT_TYPE],
+    ) -> CompositeImage:
+        copied_image = deepcopy(image)
+        await copied_image.insert_objects(children)
+        return copied_image
 
     @prompt_function(
-        index=6, description="Removes specified child elements from the image."
+        index=7, description="Removes specified child elements from the image."
     )
     async def remove_children(
         self,
@@ -253,7 +265,7 @@ class FabricProvider(Provider):
         return copied_image
 
     @prompt_function(
-        index=7,
+        index=8,
         description="Moves specified child elements to new positions. The number of children must match the number of destinations",
     )
     async def move_children(
@@ -276,7 +288,7 @@ class FabricProvider(Provider):
         return copied_image
 
     @prompt_function(
-        index=8,
+        index=9,
         description="Scales specified child elements by the provided factors. The number of children must match the number of factors.",
     )
     async def scale_children(
@@ -299,7 +311,7 @@ class FabricProvider(Provider):
         return copied_image
 
     @prompt_function(
-        index=9,
+        index=10,
         description="Creates a textbox with the specified content, font, and color properties.",
     )
     async def create_textbox(
@@ -321,7 +333,7 @@ class FabricProvider(Provider):
         )
 
     @prompt_function(
-        index=10,
+        index=11,
         description="Retrieves the position of each child element in the provided list.",
     )
     async def get_children_position(
@@ -330,7 +342,7 @@ class FabricProvider(Provider):
         return [(child.left, child.top) for child in children]
 
     @prompt_function(
-        index=11,
+        index=12,
         description="Sends a response to the user with a specified text and optional attachments, this is a special function used to interact with the user.",
     )
     async def response_to_user(
