@@ -136,7 +136,7 @@ class FabricProvider(Provider):
 
     @prompt_function(
         index=0,
-        description="Segments image objects based on a short and concise prompt such as 'cat', 'dog', 'green house', etc.",
+        description="Segments image objects based on a short and concise prompt such as 'cat', 'dog', 'green house', etc. Returns a new list of image objects without modifying the input image.",
     )
     async def segment_image_objects_by_prompt(
         self, image: CompositeImage, prompt: str
@@ -161,7 +161,7 @@ class FabricProvider(Provider):
 
     @prompt_function(
         index=1,
-        description="Segments image objects within specified boxes in the given image.",
+        description="Segments image objects within specified boxes in the given image. Returns a new list of image objects without modifying the input image.",
     )
     async def segment_image_objects_by_boxes(
         self,
@@ -173,7 +173,7 @@ class FabricProvider(Provider):
 
     @prompt_function(
         index=2,
-        description="Replaces image objects in the given image based on a detailed prompt that describes the object to replace.",
+        description="Replaces image objects in the given image based on a detailed prompt that describes the object to replace. Returns a new modified image without changing the input image.",
     )
     async def replace_image_objects_by_prompt(
         self, image: CompositeImage, objects: List[ImageObject], prompt: str
@@ -184,7 +184,7 @@ class FabricProvider(Provider):
 
     @prompt_function(
         index=3,
-        description="Applies a specified filter to an image or, if provided, to its child elements.",
+        description="Applies a specified filter to an image or its child elements. Returns a new filtered image without modifying the input image."
     )
     async def apply_filter_to_image_or_children(
         self,
@@ -216,7 +216,7 @@ class FabricProvider(Provider):
 
     @prompt_function(
         index=4,
-        description="Rotates an image or, if provided, its child elements by a specified angle.",
+        description="Rotates an image or its child elements by a specified angle. Returns a new rotated image without modifying the input image.",
     )
     async def rotate_image_or_children(
         self,
@@ -236,7 +236,7 @@ class FabricProvider(Provider):
 
     @prompt_function(
         index=5,
-        description="Flips an image or, if provided, its child elements along the specified axis (x or y).",
+        description="Flips an image or its child elements along the specified axis (x or y). Returns a new flipped image without modifying the input image."
     )
     async def flip_image_or_children(
         self,
@@ -255,7 +255,7 @@ class FabricProvider(Provider):
         return copied_image
     
     @prompt_function(
-        index=6, description="Insert specified child elements at the top-left corner of the image."
+        index=6, description="Inserts specified child elements at the top-left corner of the image. Returns a new image with the elements inserted, without modifying the input image."
     )
     async def insert_children(
         self,
@@ -272,7 +272,7 @@ class FabricProvider(Provider):
         return copied_image
 
     @prompt_function(
-        index=7, description="Removes specified child elements from the image."
+        index=7, description="Removes specified child elements from the image. Returns a new image with the elements removed, without modifying the input image."
     )
     async def remove_children(
         self,
@@ -285,7 +285,7 @@ class FabricProvider(Provider):
 
     @prompt_function(
         index=8,
-        description="Moves specified child elements to new positions. The number of children must match the number of destinations",
+        description="Moves specified child elements to new positions. Returns a new image with the elements moved, without modifying the input image."
     )
     async def move_children(
         self,
@@ -308,7 +308,7 @@ class FabricProvider(Provider):
 
     @prompt_function(
         index=9,
-        description="Scales specified child elements by the provided factors. The number of children must match the number of factors.",
+        description="Scales specified child elements by the provided factors. Returns a new image with the elements scaled, without modifying the input image.",
     )
     async def scale_children(
         self,
