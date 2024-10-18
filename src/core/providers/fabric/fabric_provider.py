@@ -123,6 +123,8 @@ class FabricProvider(Provider):
             )
 
         elif isinstance(obj, FabricImage):
+            obj.left = 0
+            obj.top = 0
             canvas = FabricCanvas(backgroundImage=obj)
             buffer = canvas.model_dump_json().encode()
             filename = (obj.filename or f"{uuid4()}.png") + ".fcanvas"
