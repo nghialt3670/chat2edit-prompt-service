@@ -1,8 +1,8 @@
 import ast
-from multiprocessing import context
 import textwrap
 import time
 import traceback
+from multiprocessing import context
 from typing import Any, Callable, Dict, Iterable, Tuple
 
 from core.providers.provider import UNEXPECTED_ERROR_OCCURRED_TEMPLATE, Provider
@@ -69,47 +69,40 @@ async def execute(
     return execution
 
 
-class NameCollector(ast.NodeVisitor):
-    def __init__(self, context: Dict[str, Any]):
+class NameReplacer(ast.NodeTransformer):
+    def __init__(self, context: Dict[str, Any], context_name: str) -> None:
+        super().__init__()
         self.context = context
-        self.names = []
-    
+        self.context_name = context_name
+
     def visit_Name(self, node):
-        if node.id in self.context:
-            self.names.append(node.id)
-            
-        self.generic_visit(node)
+        if node.id not in self.context:
+            return node
+
+        new_node = ast.Subscript(
+            value=ast.Name(id=self.context_name, ctx=ast.Load()),
+            slice=ast.Index(value=ast.Constant(value=node.id)),
+            ctx=node.ctx,
+        )
+
+        return ast.copy_location(new_node, node)
 
 
 def preprocess_command(
     command: str, context: Dict[str, Any], context_name: str = "__ctx__"
 ) -> str:
-    processed_command = command
-    replacements = []
-    curr_idx = 0
-    
+    # Parse the code into an AST
     tree = ast.parse(command, mode="exec")
-    collector = NameCollector(context)
-    collector.visit(tree)
 
-    for name in collector.names:
-        start = processed_command.find(name, curr_idx)
-        
-        if start == -1:
-            continue
+    # Create a transformer instance and modify the AST
+    replacer = NameReplacer(context, context_name)
+    modified_tree = replacer.visit(tree)
 
-        curr_idx = start + len(name)
-        varname = processed_command[start:curr_idx]
-        processed_varname = f"{context_name}['{varname}']"
-        replacements.append((start, curr_idx, processed_varname))
+    # Fix any missing locations after transformation
+    ast.fix_missing_locations(modified_tree)
 
-    # Apply replacements in reverse order to avoid messing up indices
-    for start, end, replacement in sorted(replacements, reverse=True):
-        processed_command = (
-            processed_command[:start] + replacement + processed_command[end:]
-        )
-
-    return processed_command
+    # Convert the modified AST back to source code
+    return ast.unparse(modified_tree)
 
 
 def create_wrapper_function(
