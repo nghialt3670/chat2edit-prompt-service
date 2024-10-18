@@ -1,4 +1,5 @@
 import ast
+from multiprocessing import context
 import textwrap
 import time
 import traceback
@@ -68,42 +69,45 @@ async def execute(
     return execution
 
 
+class NameCollector(ast.NodeVisitor):
+    def __init__(self, context: Dict[str, Any]):
+        self.context = context
+        self.names = []
+    
+    def visit_Name(self, node):
+        if node.id in self.context:
+            self.names.append(node.id)
+            
+        self.generic_visit(node)
+
+
 def preprocess_command(
     command: str, context: Dict[str, Any], context_name: str = "__ctx__"
 ) -> str:
     processed_command = command
-    while True:
-        replacements = []
-        curr_idx = 0
+    replacements = []
+    curr_idx = 0
+    
+    tree = ast.parse(command, mode="exec")
+    collector = NameCollector(context)
+    collector.visit(tree)
+
+    for name in collector.names:
+        start = processed_command.find(name, curr_idx)
         
-        for node in ast.walk(ast.parse(processed_command, mode="exec")):
-            if (
-                not isinstance(node, ast.Name)
-                or node.id not in context
-                or node.id == context_name
-            ):
-                continue
+        if start == -1:
+            continue
 
-            start = processed_command.find(node.id, curr_idx)
+        curr_idx = start + len(name)
+        varname = processed_command[start:curr_idx]
+        processed_varname = f"{context_name}['{varname}']"
+        replacements.append((start, curr_idx, processed_varname))
 
-            if start == -1:
-                continue
-
-            curr_idx = start + len(node.id)
-
-            varname = processed_command[start:curr_idx]
-            processed_varname = f"{context_name}['{varname}']"
-
-            replacements.append((start, curr_idx, processed_varname))
-
-        if not replacements:
-            break
-
-        # Apply replacements in reverse order to avoid messing up indices
-        for start, end, replacement in sorted(replacements, reverse=True):
-            processed_command = (
-                processed_command[:start] + replacement + processed_command[end:]
-            )
+    # Apply replacements in reverse order to avoid messing up indices
+    for start, end, replacement in sorted(replacements, reverse=True):
+        processed_command = (
+            processed_command[:start] + replacement + processed_command[end:]
+        )
 
     return processed_command
 
