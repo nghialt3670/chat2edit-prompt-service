@@ -69,16 +69,16 @@ ADJUSTABLE_FILTER_NAME_SET = {
 FILTERABLE_OBJECT_TYPE = Union[CompositeImage, ImageObject]
 CANVAS_OBJECT_TYPE = Union[CompositeImage, ImageObject, Textbox]
 FONT_FAMILY_TYPE = Literal[
-    "Arial", 
-    "Verdana", 
-    "Helvetica", 
-    "Tahoma", 
-    "Trebuchet MS", 
-    "Georgia", 
-    "Times New Roman", 
-    "Courier New", 
-    "Lucida Console", 
-    "Palatino Linotype"
+    "Arial",
+    "Verdana",
+    "Helvetica",
+    "Tahoma",
+    "Trebuchet MS",
+    "Georgia",
+    "Times New Roman",
+    "Courier New",
+    "Lucida Console",
+    "Palatino Linotype",
 ]
 FONT_WEIGHT_TYPE = Literal["light", "normal", "bold"]
 FONT_STYLE_TYPE = Literal["normal", "oblique", "italic"]
@@ -184,7 +184,7 @@ class FabricProvider(Provider):
 
     @prompt_function(
         index=3,
-        description="Applies a specified filter to an image or its child elements. Returns a new filtered image without modifying the input image."
+        description="Applies a specified filter to an image or its child elements. Returns a new filtered image without modifying the input image.",
     )
     async def apply_filter_to_image_or_children(
         self,
@@ -236,7 +236,7 @@ class FabricProvider(Provider):
 
     @prompt_function(
         index=5,
-        description="Flips an image or its child elements along the specified axis (x or y). Returns a new flipped image without modifying the input image."
+        description="Flips an image or its child elements along the specified axis (x or y). Returns a new flipped image without modifying the input image.",
     )
     async def flip_image_or_children(
         self,
@@ -253,9 +253,10 @@ class FabricProvider(Provider):
             copied_image.backgroundImage.flip(axis)
 
         return copied_image
-    
+
     @prompt_function(
-        index=6, description="Inserts specified child elements at the top-left corner of the image. Returns a new image with the elements inserted, without modifying the input image."
+        index=6,
+        description="Inserts specified child elements at the top-left corner of the image. Returns a new image with the elements inserted, without modifying the input image.",
     )
     async def insert_children(
         self,
@@ -263,16 +264,17 @@ class FabricProvider(Provider):
         children: List[CANVAS_OBJECT_TYPE],
     ) -> CompositeImage:
         copied_image = deepcopy(image)
-        
+
         for obj in children:
             if isinstance(obj, FabricTextbox) and obj.fontSize == "default":
                 obj.fontSize = image.backgroundImage.height // 6
-                
+
         await copied_image.insert_objects(children)
         return copied_image
 
     @prompt_function(
-        index=7, description="Removes specified child elements from the image. Returns a new image with the elements removed, without modifying the input image."
+        index=7,
+        description="Removes specified child elements from the image. Returns a new image with the elements removed, without modifying the input image.",
     )
     async def remove_children(
         self,
@@ -285,7 +287,7 @@ class FabricProvider(Provider):
 
     @prompt_function(
         index=8,
-        description="Moves specified child elements to new positions. Returns a new image with the elements moved, without modifying the input image."
+        description="Moves specified child elements to new positions. Returns a new image with the elements moved, without modifying the input image.",
     )
     async def move_children(
         self,
